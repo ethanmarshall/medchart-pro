@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type Patient, type Medicine, type Prescription, type Administration } from "@shared/schema";
+import { NextDoseCountdown } from "./next-dose-countdown";
 
 interface MedicationAdminProps {
   patient: Patient;
@@ -252,9 +253,15 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
                         {isAdministered ? 'Administered' : 'Pending'}
                       </span>
                       {isAdministered && successfulAdmin && successfulAdmin.administeredAt && (
-                        <p className="text-xs text-medical-text-muted mt-1">
-                          {new Date(successfulAdmin.administeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        <div className="mt-1 space-y-1">
+                          <p className="text-xs text-medical-text-muted">
+                            {new Date(successfulAdmin.administeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          <NextDoseCountdown 
+                            lastAdministeredAt={successfulAdmin.administeredAt}
+                            periodicity={prescription.periodicity}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>

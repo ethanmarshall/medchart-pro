@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Patient, type Prescription, type Medicine } from "@shared/schema";
+import { type Patient, type Prescription, type Medicine, type Administration } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { NextDoseCountdown } from "./next-dose-countdown";
 
 interface PrescriptionManagerProps {
   patient: Patient;
@@ -26,6 +27,11 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   // Get all medicines for lookup
   const { data: medicines = [] } = useQuery<Medicine[]>({
     queryKey: ['/api/medicines'],
+  });
+
+  // Get administrations for countdown timers
+  const { data: administrations = [] } = useQuery<Administration[]>({
+    queryKey: ['/api/patients', patient.id, 'administrations'],
   });
 
   const addPrescriptionMutation = useMutation({
@@ -151,6 +157,19 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   <p className="text-xs text-medical-text-muted font-mono">
                     ID: {prescription.medicineId}
                   </p>
+                  {(() => {
+                    const successfulAdmin = administrations.find(
+                      adm => adm.medicineId === prescription.medicineId && adm.status === 'success'
+                    );
+                    return successfulAdmin && successfulAdmin.administeredAt && (
+                      <div className="mt-2">
+                        <NextDoseCountdown 
+                          lastAdministeredAt={successfulAdmin.administeredAt}
+                          periodicity={prescription.periodicity}
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
               <button

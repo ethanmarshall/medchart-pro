@@ -252,6 +252,9 @@ export class MemStorage implements IStorage {
     const prescription: Prescription = {
       ...insertPrescription,
       id: randomUUID(),
+      duration: insertPrescription.duration ?? null,
+      startDate: insertPrescription.startDate ?? null,
+      endDate: insertPrescription.endDate ?? null,
     };
     
     const existing = this.prescriptions.get(prescription.patientId) || [];
@@ -262,8 +265,8 @@ export class MemStorage implements IStorage {
   }
 
   async updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration' | 'startDate' | 'endDate'>>): Promise<Prescription | undefined> {
-    for (const [patientId, prescriptions] of this.prescriptions.entries()) {
-      const index = prescriptions.findIndex(p => p.id === prescriptionId);
+    for (const [patientId, prescriptions] of Array.from(this.prescriptions.entries())) {
+      const index = prescriptions.findIndex((p: Prescription) => p.id === prescriptionId);
       if (index !== -1) {
         const updatedPrescription = { ...prescriptions[index], ...updates };
         prescriptions[index] = updatedPrescription;
@@ -275,8 +278,8 @@ export class MemStorage implements IStorage {
   }
 
   async deletePrescription(prescriptionId: string): Promise<boolean> {
-    for (const [patientId, prescriptions] of this.prescriptions.entries()) {
-      const index = prescriptions.findIndex(p => p.id === prescriptionId);
+    for (const [patientId, prescriptions] of Array.from(this.prescriptions.entries())) {
+      const index = prescriptions.findIndex((p: Prescription) => p.id === prescriptionId);
       if (index !== -1) {
         prescriptions.splice(index, 1);
         this.prescriptions.set(patientId, prescriptions);
@@ -331,11 +334,6 @@ export class MemStorage implements IStorage {
       changes: auditLog.changes ?? null,
       userId: auditLog.userId ?? null,
     };
-  }
-
-  async getLabResultsByPatient(patientId: string): Promise<LabResult[]> {
-    // For MemStorage, return empty array
-    return [];
   }
 }
 

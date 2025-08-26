@@ -251,6 +251,13 @@ export async function seedDatabase() {
   try {
     console.log("🌱 Seeding database...");
     
+    // Check if database is already seeded by looking for existing patients
+    const existingPatients = await db.select().from(patients).limit(1);
+    if (existingPatients.length > 0) {
+      console.log("Database already seeded, skipping...");
+      return;
+    }
+    
     // Insert patients
     for (const patient of initialPatients) {
       await db.insert(patients).values(patient).onConflictDoNothing();

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { patients, medicines, prescriptions } from "@shared/schema";
+import { patients, medicines, prescriptions, labResults } from "@shared/schema";
 
 const initialPatients = [
   {
@@ -121,6 +121,54 @@ const initialPrescriptions = [
   { id: '6', patientId: '223344556677', medicineId: '2094434849303', dosage: '10mg', periodicity: 'Once daily' }
 ];
 
+const initialLabResults = [
+  {
+    patientId: '112233445566',
+    testName: 'Complete Blood Count (CBC)',
+    value: '12.5',
+    unit: 'g/dL',
+    referenceRange: '11.6-15.0',
+    status: 'normal',
+    collectedAt: new Date('2024-12-20T08:30:00Z')
+  },
+  {
+    patientId: '112233445566',
+    testName: 'Glucose',
+    value: '185',
+    unit: 'mg/dL',
+    referenceRange: '70-99',
+    status: 'high',
+    collectedAt: new Date('2024-12-20T08:30:00Z')
+  },
+  {
+    patientId: '112233445566',
+    testName: 'Creatinine',
+    value: '0.9',
+    unit: 'mg/dL',
+    referenceRange: '0.6-1.2',
+    status: 'normal',
+    collectedAt: new Date('2024-12-19T14:15:00Z')
+  },
+  {
+    patientId: '223344556677',
+    testName: 'Hemoglobin A1C',
+    value: '8.2',
+    unit: '%',
+    referenceRange: '<7.0',
+    status: 'high',
+    collectedAt: new Date('2024-12-18T10:00:00Z')
+  },
+  {
+    patientId: '223344556677',
+    testName: 'Total Cholesterol',
+    value: '165',
+    unit: 'mg/dL',
+    referenceRange: '<200',
+    status: 'normal',
+    collectedAt: new Date('2024-12-18T10:00:00Z')
+  }
+];
+
 export async function seedDatabase() {
   try {
     console.log("🌱 Seeding database...");
@@ -138,6 +186,11 @@ export async function seedDatabase() {
     // Insert prescriptions
     for (const prescription of initialPrescriptions) {
       await db.insert(prescriptions).values(prescription).onConflictDoNothing();
+    }
+    
+    // Insert lab results
+    for (const labResult of initialLabResults) {
+      await db.insert(labResults).values(labResult).onConflictDoNothing();
     }
     
     console.log("✅ Database seeded successfully!");

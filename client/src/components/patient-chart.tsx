@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { type Patient, type Administration, type Medicine } from "@shared/schema";
+import { type Patient, type Administration, type Medicine, type Prescription } from "@shared/schema";
+import { NextDoseCountdown } from "./next-dose-countdown";
 import { MedicationAdmin } from "./medication-admin";
 import { AuditLogComponent } from "./audit-log";
 import { PrescriptionManager } from "./prescription-manager";
+import { LabResults } from "./lab-results";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -12,7 +14,7 @@ interface PatientChartProps {
 }
 
 export function PatientChart({ patient, onClear }: PatientChartProps) {
-  const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history' | 'audit' | 'prescriptions'>('medication');
+  const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history' | 'audit' | 'prescriptions' | 'labresults'>('medication');
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     notes: patient.notes,
@@ -33,6 +35,11 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
   
   const { data: medicines = [] } = useQuery<Medicine[]>({
     queryKey: ['/api/medicines'],
+  });
+
+  // Get prescriptions for countdown calculation
+  const { data: prescriptions = [] } = useQuery<Prescription[]>({
+    queryKey: ['/api/patients', patient.id, 'prescriptions'],
   });
   
   const queryClient = useQueryClient();
@@ -385,6 +392,17 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
                 <i className="fas fa-history mr-2"></i>Administration History
               </button>
               <button 
+                onClick={() => setActiveTab('labresults')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'labresults'
+                    ? 'border-medical-primary text-medical-primary'
+                    : 'border-transparent text-medical-text-muted hover:text-medical-text-primary'
+                }`}
+                data-testid="tab-labresults"
+              >
+                <i className="fas fa-vial mr-2"></i>Lab Results
+              </button>
+              <button 
                 onClick={() => setActiveTab('audit')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'audit'
@@ -403,6 +421,8 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
         {activeTab === 'medication' && <MedicationAdmin patient={patient} />}
         
         {activeTab === 'prescriptions' && <PrescriptionManager patient={patient} />}
+        
+        {activeTab === 'labresults' && <LabResults patient={patient} />}
         
         {activeTab === 'chart' && (
           <div className="bg-white rounded-xl shadow-medical border border-medical-border p-6">
@@ -467,15 +487,28 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
                               <p className="text-xs text-medical-text-muted font-mono">ID: {admin.medicineId}</p>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right space-y-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor} ${bgColor}`}>
                               <i className={`fas ${admin.status === 'success' ? 'fa-check' : admin.status === 'warning' ? 'fa-exclamation-triangle' : 'fa-times'} mr-1`}></i>
                               {admin.status.toUpperCase()}
                             </span>
                             {admin.administeredAt && (
-                              <p className="text-xs text-medical-text-muted mt-1">
-                                {new Date(admin.administeredAt).toLocaleString()}
-                              </p>
+                              <div>
+                                <p className="text-xs text-medical-text-muted">
+                                  {new Date(admin.administeredAt).toLocaleString()}
+                                </p>
+                                {admin.status === 'success' && (() => {
+                                  const prescription = prescriptions.find(p => p.medicineId === admin.medicineId);
+                                  return prescription && (
+                                    <div className="mt-1">
+                                      <NextDoseCountdown 
+                                        lastAdministeredAt={admin.administeredAt}
+                                        periodicity={prescription.periodicity}
+                                      />
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             )}
                           </div>
                         </div>

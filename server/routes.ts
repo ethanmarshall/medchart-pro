@@ -110,6 +110,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get lab results for a patient
+  app.get("/api/patients/:patientId/lab-results", async (req, res) => {
+    try {
+      const labResults = await storage.getLabResultsByPatient(req.params.patientId);
+      res.json(labResults);
+    } catch (error) {
+      console.error('Error fetching lab results:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Add prescription (requires PIN validation)
   app.post("/api/patients/:patientId/prescriptions", async (req, res) => {
     try {

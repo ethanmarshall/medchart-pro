@@ -188,6 +188,9 @@ export interface IStorage {
   // Audit log methods
   getAuditLogsByEntity(entityType: string, entityId: string): Promise<AuditLog[]>;
   createAuditLog(auditLog: InsertAuditLog): Promise<AuditLog>;
+  
+  // Lab result methods
+  getLabResultsByPatient(patientId: string): Promise<LabResult[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -299,6 +302,11 @@ export class MemStorage implements IStorage {
       changes: auditLog.changes ?? null,
       userId: auditLog.userId ?? null,
     };
+  }
+
+  async getLabResultsByPatient(patientId: string): Promise<LabResult[]> {
+    // For MemStorage, return empty array
+    return [];
   }
 }
 
@@ -434,6 +442,10 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return auditLog;
+  }
+
+  async getLabResultsByPatient(patientId: string): Promise<LabResult[]> {
+    return await db.select().from(labResults).where(eq(labResults.patientId, patientId));
   }
 }
 

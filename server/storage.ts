@@ -193,6 +193,7 @@ export interface IStorage {
   
   // Lab result methods
   getLabResultsByPatient(patientId: string): Promise<LabResult[]>;
+  createLabOrders(patientId: string, tests: string[], orderDate: string): Promise<number>;
 }
 
 export class MemStorage implements IStorage {
@@ -309,6 +310,11 @@ export class MemStorage implements IStorage {
 
   async getLabResultsByPatient(patientId: string): Promise<LabResult[]> {
     return this.labResults.get(patientId) || [];
+  }
+
+  async createLabOrders(patientId: string, tests: string[], orderDate: string): Promise<number> {
+    // For MemStorage, return mock count
+    return tests.length;
   }
 
   async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
@@ -508,6 +514,102 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error in getLabResultsByPatient:', error);
       throw error;
+    }
+  }
+
+  async createLabOrders(patientId: string, tests: string[], orderDate: string): Promise<number> {
+    try {
+      const testDefinitions: Record<string, any> = {
+        'CBC-HGB': { name: 'Complete Blood Count - Hemoglobin', unit: 'g/dL', referenceRange: '12.0-16.0 g/dL', normalRange: [12.0, 16.0] },
+        'CBC-WBC': { name: 'Complete Blood Count - White Blood Cells', unit: 'cells/μL', referenceRange: '4500-11000 cells/μL', normalRange: [4500, 11000] },
+        'BMP-GLU': { name: 'Basic Metabolic Panel - Glucose', unit: 'mg/dL', referenceRange: '70-100 mg/dL', normalRange: [70, 100] },
+        'BMP-CREAT': { name: 'Basic Metabolic Panel - Creatinine', unit: 'mg/dL', referenceRange: '0.6-1.2 mg/dL', normalRange: [0.6, 1.2] },
+        'HbA1c': { name: 'Hemoglobin A1C', unit: '%', referenceRange: '<7.0%', normalRange: [4.0, 6.5] },
+        'LIPID-CHOL': { name: 'Lipid Panel - Total Cholesterol', unit: 'mg/dL', referenceRange: '<200 mg/dL', normalRange: [150, 220] },
+        'LIPID-LDL': { name: 'Lipid Panel - LDL Cholesterol', unit: 'mg/dL', referenceRange: '<100 mg/dL', normalRange: [70, 130] },
+        'LIPID-HDL': { name: 'Lipid Panel - HDL Cholesterol', unit: 'mg/dL', referenceRange: '>40 mg/dL (M), >50 mg/dL (F)', normalRange: [40, 80] },
+        'TSH': { name: 'Thyroid Stimulating Hormone', unit: 'mIU/L', referenceRange: '0.4-4.0 mIU/L', normalRange: [0.4, 4.0] },
+        'PSA': { name: 'Prostate Specific Antigen', unit: 'ng/mL', referenceRange: '<4.0 ng/mL', normalRange: [0.1, 4.0] }
+      };
+
+      const takenAt = new Date(orderDate + 'T08:00:00Z');
+      const resultedAt = new Date(takenAt.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+      let resultsCreated = 0;
+
+      for (const testCode of tests) {
+        const testDef = testDefinitions[testCode];
+        if (!testDef) continue;
+
+        // Generate realistic values with some variation
+        const [min, max] = testDef.normalRange;
+        let value = (Math.random() * (max - min) + min).toFixed(1);
+        
+        // Randomly make some results slightly abnormal (20% chance)
+        if (Math.random() < 0.2) {
+          if (Math.random() < 0.5) {
+            value = (min * 0.8).toFixed(1); // Low
+          } else {
+            value = (max * 1.2).toFixed(1); // High
+          }
+        }
+
+        const status = this.determineLabStatus(testCode, parseFloat(value), testDef.normalRange);
+        const notes = this.generateLabNotes(testCode, status);
+
+        await db.insert(labResults).values({
+          patientId,
+          testName: testDef.name,
+          testCode,
+          value,
+          unit: testDef.unit,
+          referenceRange: testDef.referenceRange,
+          status,
+          takenAt,
+          resultedAt,
+          notes
+        });
+
+        resultsCreated++;
+      }
+
+      return resultsCreated;
+    } catch (error) {
+      console.error('Error creating lab orders:', error);
+      throw error;
+    }
+  }
+
+  private determineLabStatus(testCode: string, value: number, normalRange: number[]): string {
+    const [min, max] = normalRange;
+    
+    if (value < min * 0.7 || value > max * 1.5) {
+      return 'critical';
+    } else if (value < min || value > max) {
+      return 'abnormal';
+    } else {
+      return 'normal';
+    }
+  }
+
+  private generateLabNotes(testCode: string, status: string): string | null {
+    if (status === 'normal') {
+      return `${testCode} within normal limits`;
+    } else if (status === 'abnormal') {
+      const notes: Record<string, string> = {
+        'CBC-HGB': 'Consider iron supplementation or further evaluation',
+        'CBC-WBC': 'Monitor for infection or immune response',
+        'BMP-GLU': 'Recommend dietary counseling and follow-up',
+        'BMP-CREAT': 'Consider kidney function evaluation',
+        'HbA1c': 'Diabetes management review recommended',
+        'LIPID-CHOL': 'Dietary changes and lifestyle modification advised',
+        'LIPID-LDL': 'Consider statin therapy',
+        'LIPID-HDL': 'Exercise and omega-3 supplementation recommended',
+        'TSH': 'Endocrine evaluation recommended',
+        'PSA': 'Urology consultation recommended'
+      };
+      return notes[testCode] || 'Abnormal result - recommend follow-up';
+    } else {
+      return 'Critical result - immediate attention required';
     }
   }
 }

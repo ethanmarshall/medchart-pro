@@ -104,6 +104,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Order lab tests (creates artificial lab results)
+  app.post("/api/lab-orders", async (req, res) => {
+    try {
+      const { patientId, tests, orderDate } = req.body;
+      
+      if (!patientId || !tests || !Array.isArray(tests) || tests.length === 0) {
+        return res.status(400).json({ message: "Invalid order data" });
+      }
+
+      // Verify patient exists
+      const patient = await storage.getPatient(patientId);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      // Generate artificial lab results for each test
+      const resultsCreated = await storage.createLabOrders(patientId, tests, orderDate);
+      
+      res.status(201).json({ 
+        message: "Lab orders created successfully",
+        patientId,
+        testsOrdered: tests.length,
+        resultsCreated,
+        orderDate 
+      });
+    } catch (error) {
+      console.error('Error creating lab orders:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Record medication administration
   app.post("/api/administrations", async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { PatientScanner } from "@/components/patient-scanner";
+import { LabOrder } from "@/components/lab-order";
 import { PatientForm } from "@/components/patient-form";
 import { PatientChart } from "@/components/patient-chart";
 import { DatabaseManagement } from "@/components/database-management";
@@ -8,17 +8,17 @@ import { type Patient } from "@shared/schema";
 
 export default function Home() {
   const [currentPatient, setCurrentPatient] = useState<Patient | null>(null);
-  const [activeTab, setActiveTab] = useState<'scan' | 'add'>('scan');
+  const [activeTab, setActiveTab] = useState<'labs' | 'add'>('labs');
   const [showDbManagement, setShowDbManagement] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState("");
 
-  const handlePatientFound = (patient: Patient) => {
-    setCurrentPatient(patient);
+  const handleOrderComplete = () => {
+    // Keep user on labs tab after completing order
   };
 
   const handlePatientAdded = () => {
-    setActiveTab('scan');
+    setActiveTab('labs');
   };
 
   const handleClearPatient = () => {
@@ -94,16 +94,16 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-medical border border-medical-border p-6 hover:shadow-medical-lg transition-shadow duration-200">
             <div className="flex items-center justify-center w-12 h-12 bg-medical-primary rounded-lg mb-4 mx-auto">
-              <i className="fas fa-qrcode text-white text-xl"></i>
+              <i className="fas fa-vial text-white text-xl"></i>
             </div>
-            <h3 className="text-lg font-semibold text-medical-text-primary text-center mb-2">Scan Patient</h3>
-            <p className="text-medical-text-muted text-center text-sm mb-4">Quickly access patient records using barcode scanner</p>
+            <h3 className="text-lg font-semibold text-medical-text-primary text-center mb-2">Order Labs</h3>
+            <p className="text-medical-text-muted text-center text-sm mb-4">Generate laboratory test results for patients</p>
             <button 
-              onClick={() => setActiveTab('scan')}
+              onClick={() => setActiveTab('labs')}
               className="w-full bg-medical-primary hover:bg-teal-800 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-              data-testid="button-scan-patient"
+              data-testid="button-order-labs"
             >
-              Start Scanning
+              Order Tests
             </button>
           </div>
 
@@ -142,15 +142,15 @@ export default function Home() {
           <div className="border-b border-medical-border">
             <nav className="flex justify-center" aria-label="Tabs">
               <button 
-                onClick={() => setActiveTab('scan')}
+                onClick={() => setActiveTab('labs')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === 'scan' 
+                  activeTab === 'labs' 
                     ? 'border-medical-primary text-medical-primary' 
                     : 'border-transparent text-medical-text-muted hover:text-medical-text-primary hover:border-gray-300'
                 }`}
-                data-testid="tab-scan"
+                data-testid="tab-labs"
               >
-                <i className="fas fa-qrcode mr-2"></i>Scan Patient
+                <i className="fas fa-vial mr-2"></i>Order Labs
               </button>
               <button 
                 onClick={() => setActiveTab('add')}
@@ -168,8 +168,8 @@ export default function Home() {
 
           {/* Tab Content */}
           <div className="p-8">
-            {activeTab === 'scan' ? (
-              <PatientScanner onPatientFound={handlePatientFound} />
+            {activeTab === 'labs' ? (
+              <LabOrder onOrderComplete={handleOrderComplete} />
             ) : (
               <PatientForm onPatientAdded={handlePatientAdded} />
             )}

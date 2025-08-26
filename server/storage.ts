@@ -201,6 +201,7 @@ export class MemStorage implements IStorage {
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
     const patient: Patient = {
       ...insertPatient,
+      chartData: insertPatient.chartData ?? null,
       createdAt: new Date(),
     };
     this.patients.set(patient.id, patient);

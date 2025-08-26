@@ -179,6 +179,7 @@ export interface IStorage {
   // Prescription methods
   getPrescriptionsByPatient(patientId: string): Promise<Prescription[]>;
   createPrescription(prescription: InsertPrescription): Promise<Prescription>;
+  deletePrescription(prescriptionId: string): Promise<boolean>;
   
   // Administration methods
   getAdministrationsByPatient(patientId: string): Promise<Administration[]>;
@@ -243,6 +244,18 @@ export class MemStorage implements IStorage {
     this.prescriptions.set(prescription.patientId, existing);
     
     return prescription;
+  }
+
+  async deletePrescription(prescriptionId: string): Promise<boolean> {
+    for (const [patientId, prescriptions] of this.prescriptions.entries()) {
+      const index = prescriptions.findIndex(p => p.id === prescriptionId);
+      if (index !== -1) {
+        prescriptions.splice(index, 1);
+        this.prescriptions.set(patientId, prescriptions);
+        return true;
+      }
+    }
+    return false;
   }
 
   async getAdministrationsByPatient(patientId: string): Promise<Administration[]> {
@@ -365,6 +378,15 @@ export class DatabaseStorage implements IStorage {
     });
     
     return prescription;
+  }
+
+  async deletePrescription(prescriptionId: string): Promise<boolean> {
+    const result = await db
+      .delete(prescriptions)
+      .where(eq(prescriptions.id, prescriptionId))
+      .returning();
+    
+    return result.length > 0;
   }
 
   async getAdministrationsByPatient(patientId: string): Promise<Administration[]> {

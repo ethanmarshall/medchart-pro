@@ -2,6 +2,7 @@ import { useState } from "react";
 import { type Patient, type Administration, type Medicine } from "@shared/schema";
 import { MedicationAdmin } from "./medication-admin";
 import { AuditLogComponent } from "./audit-log";
+import { PrescriptionManager } from "./prescription-manager";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -11,7 +12,7 @@ interface PatientChartProps {
 }
 
 export function PatientChart({ patient, onClear }: PatientChartProps) {
-  const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history' | 'audit'>('medication');
+  const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history' | 'audit' | 'prescriptions'>('medication');
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     notes: patient.notes,
@@ -362,6 +363,17 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
                 <i className="fas fa-file-medical mr-2"></i>Chart Data
               </button>
               <button 
+                onClick={() => setActiveTab('prescriptions')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'prescriptions'
+                    ? 'border-medical-primary text-medical-primary'
+                    : 'border-transparent text-medical-text-muted hover:text-medical-text-primary'
+                }`}
+                data-testid="tab-prescriptions"
+              >
+                <i className="fas fa-prescription-bottle mr-2"></i>Prescription Management
+              </button>
+              <button 
                 onClick={() => setActiveTab('history')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'history'
@@ -389,6 +401,8 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
 
         {/* Tab Content */}
         {activeTab === 'medication' && <MedicationAdmin patient={patient} />}
+        
+        {activeTab === 'prescriptions' && <PrescriptionManager patient={patient} />}
         
         {activeTab === 'chart' && (
           <div className="bg-white rounded-xl shadow-medical border border-medical-border p-6">

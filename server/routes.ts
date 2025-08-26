@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAdministrationSchema } from "@shared/schema";
+import { insertPatientSchema, insertAdministrationSchema, insertPrescriptionSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -110,6 +110,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add prescription (requires PIN validation)
+  app.post("/api/patients/:patientId/prescriptions", async (req, res) => {
+    try {
+      const { medicineId, pin } = req.body;
+      
+      // Validate PIN
+      if (pin !== "1234") {
+        return res.status(401).json({ message: "Invalid PIN code" });
+      }
+      
+      const validatedData = insertPrescriptionSchema.parse({
+        patientId: req.params.patientId,
+        medicineId
+      });
+      
+      const prescription = await storage.createPrescription(validatedData);
+      
+      // Create audit log
+      await storage.createAuditLog({
+        entityType: 'prescription',
+        entityId: prescription.id,
+        action: 'create',
+        changes: {
+          patient_id: req.params.patientId,
+          medicine_id: medicineId,
+          action: 'prescription_added'
+        } as any
+      });
+      
+      res.status(201).json(prescription);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid prescription data", errors: error.errors });
+      }
+      console.error('Error adding prescription:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Remove prescription (requires PIN validation)
+  app.delete("/api/patients/:patientId/prescriptions/:prescriptionId", async (req, res) => {
+    try {
+      const { pin } = req.body;
+      
+      // Validate PIN
+      if (pin !== "1234") {
+        return res.status(401).json({ message: "Invalid PIN code" });
+      }
+      
+      const deleted = await storage.deletePrescription(req.params.prescriptionId);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Prescription not found" });
+      }
+      
+      // Create audit log
+      await storage.createAuditLog({
+        entityType: 'prescription',
+        entityId: req.params.prescriptionId,
+        action: 'delete',
+        changes: {
+          patient_id: req.params.patientId,
+          prescription_id: req.params.prescriptionId,
+          action: 'prescription_removed'
+        } as any
+      });
+      
+      res.json({ message: "Prescription removed successfully" });
+    } catch (error) {
+      console.error('Error removing prescription:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Update patient data
   app.patch("/api/patients/:id", async (req, res) => {
     try {
@@ -133,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           return acc;
         }, {} as Record<string, any>)
-      };
+      } as any;
 
       await storage.createAuditLog({
         entityType: 'patient',

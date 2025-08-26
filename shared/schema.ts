@@ -15,6 +15,12 @@ export const patients = pgTable("patients", {
   admitted: text("admitted").notNull(),
   codeStatus: text("code_status").notNull(),
   isolation: text("isolation").notNull(),
+  bed: text("bed").notNull(),
+  allergies: text("allergies").notNull(),
+  status: text("status").notNull(),
+  provider: text("provider").notNull(),
+  notes: text("notes").notNull(),
+  department: text("department").notNull(),
   chartData: json("chart_data").$type<{
     background: string;
     summary: string;

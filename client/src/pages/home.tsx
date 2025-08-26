@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { PatientScanner } from "@/components/patient-scanner";
 import { PatientForm } from "@/components/patient-form";
 import { PatientChart } from "@/components/patient-chart";
@@ -40,6 +41,11 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Link href="/dashboard">
+                <button className="bg-medical-secondary hover:bg-cyan-900 text-white px-4 py-2 rounded-lg font-medium transition-colors" data-testid="link-dashboard">
+                  <i className="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </button>
+              </Link>
               <div className="hidden md:block text-right">
                 <p className="text-sm font-medium text-medical-text-primary">Dr. Sarah Johnson</p>
                 <p className="text-xs text-medical-text-muted">Internal Medicine</p>
@@ -95,16 +101,15 @@ export default function Home() {
 
           <div className="bg-white rounded-xl shadow-medical border border-medical-border p-6">
             <div className="flex items-center justify-center w-12 h-12 bg-slate-600 rounded-lg mb-4 mx-auto">
-              <i className="fas fa-history text-white text-xl"></i>
+              <i className="fas fa-tachometer-alt text-white text-xl"></i>
             </div>
-            <h3 className="text-lg font-semibold text-medical-text-primary text-center mb-2">Recent Activity</h3>
-            <p className="text-medical-text-muted text-center text-sm mb-4">View recent patient interactions</p>
-            <button 
-              className="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-              data-testid="button-recent-activity"
-            >
-              View History
-            </button>
+            <h3 className="text-lg font-semibold text-medical-text-primary text-center mb-2">Patient Dashboard</h3>
+            <p className="text-medical-text-muted text-center text-sm mb-4">View all patients with filtering options</p>
+            <Link href="/dashboard">
+              <button className="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200" data-testid="button-view-dashboard">
+                View Dashboard
+              </button>
+            </Link>
           </div>
         </div>
 

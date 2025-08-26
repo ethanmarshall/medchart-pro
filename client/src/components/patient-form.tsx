@@ -24,7 +24,13 @@ export function PatientForm({ onPatientAdded }: PatientFormProps) {
     fin: '',
     admitted: '',
     codeStatus: 'Full Code',
-    isolation: 'None'
+    isolation: 'None',
+    bed: '',
+    allergies: 'None',
+    status: 'Stable',
+    provider: '',
+    notes: '',
+    department: 'Labor & Delivery'
   });
 
   const queryClient = useQueryClient();
@@ -52,7 +58,7 @@ export function PatientForm({ onPatientAdded }: PatientFormProps) {
     },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ 
       ...prev, 
@@ -246,6 +252,103 @@ export function PatientForm({ onPatientAdded }: PatientFormProps) {
               <option value="Airborne Precautions">Airborne Precautions</option>
             </select>
           </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-medical-text-secondary mb-2">Department *</label>
+            <select 
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              required 
+              className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent bg-white"
+              data-testid="select-patient-department"
+            >
+              <option value="Labor & Delivery">Labor & Delivery</option>
+              <option value="Postpartum">Postpartum</option>
+              <option value="Newborn">Newborn</option>
+              <option value="Medical">Medical</option>
+            </select>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-medical-text-secondary mb-2">Bed Assignment *</label>
+              <input 
+                type="text" 
+                name="bed"
+                value={formData.bed}
+                onChange={handleChange}
+                required 
+                className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" 
+                placeholder="e.g., LD-102"
+                data-testid="input-patient-bed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-medical-text-secondary mb-2">Status *</label>
+              <select 
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                required 
+                className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent bg-white"
+                data-testid="select-patient-status"
+              >
+                <option value="Stable">Stable</option>
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Critical">Critical</option>
+                <option value="Active Labor">Active Labor</option>
+                <option value="Recovering">Recovering</option>
+                <option value="Improving">Improving</option>
+                <option value="Healthy">Healthy</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-medical-text-secondary mb-2">Attending Provider *</label>
+            <input 
+              type="text" 
+              name="provider"
+              value={formData.provider}
+              onChange={handleChange}
+              required 
+              className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" 
+              placeholder="e.g., Dr. Sarah Johnson"
+              data-testid="input-patient-provider"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-medical-text-secondary mb-2">Allergies</label>
+            <input 
+              type="text" 
+              name="allergies"
+              value={formData.allergies}
+              onChange={handleChange}
+              className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" 
+              placeholder="e.g., Penicillin, None"
+              data-testid="input-patient-allergies"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Additional Notes */}
+      <div className="space-y-4">
+        <h4 className="font-semibold text-medical-text-primary border-b border-medical-border pb-2">Clinical Notes</h4>
+        <div>
+          <label className="block text-sm font-medium text-medical-text-secondary mb-2">Notes</label>
+          <textarea 
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            rows={3}
+            className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent resize-none" 
+            placeholder="Clinical notes, care instructions, or observations..."
+            data-testid="textarea-patient-notes"
+          />
         </div>
       </div>
 

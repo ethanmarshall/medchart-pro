@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { patients, medicines, prescriptions, labResults } from "@shared/schema";
+import { patients, medicines, prescriptions, labTestTypes, labResults } from "@shared/schema";
 
 const initialPatients = [
   {
@@ -119,6 +119,19 @@ const initialPrescriptions = [
   { id: '4', patientId: '223344556677', medicineId: '09509828', dosage: '500mg', periodicity: 'Twice daily', duration: 'Ongoing', startDate: new Date('2025-08-20'), endDate: null },
   { id: '5', patientId: '223344556677', medicineId: '31908432', dosage: '1000mg', periodicity: 'Once daily', duration: '5 days', startDate: new Date('2025-08-26'), endDate: new Date('2025-08-31') },
   { id: '6', patientId: '223344556677', medicineId: '20944348', dosage: '10mg', periodicity: 'Once daily', duration: 'Ongoing', startDate: new Date('2025-08-20'), endDate: null }
+];
+
+const initialLabTestTypes = [
+  { code: 'CBC-HGB', name: 'Complete Blood Count - Hemoglobin', category: 'Hematology', unit: 'g/dL', referenceRange: '12.0-16.0 g/dL', isActive: 1 },
+  { code: 'CBC-WBC', name: 'Complete Blood Count - White Blood Cells', category: 'Hematology', unit: 'cells/μL', referenceRange: '4500-11000 cells/μL', isActive: 1 },
+  { code: 'BMP-GLU', name: 'Basic Metabolic Panel - Glucose', category: 'Chemistry', unit: 'mg/dL', referenceRange: '70-100 mg/dL', isActive: 1 },
+  { code: 'BMP-CREAT', name: 'Basic Metabolic Panel - Creatinine', category: 'Chemistry', unit: 'mg/dL', referenceRange: '0.6-1.2 mg/dL', isActive: 1 },
+  { code: 'HbA1c', name: 'Hemoglobin A1C', category: 'Endocrinology', unit: '%', referenceRange: '<7.0%', isActive: 1 },
+  { code: 'LIPID-CHOL', name: 'Lipid Panel - Total Cholesterol', category: 'Chemistry', unit: 'mg/dL', referenceRange: '<200 mg/dL', isActive: 1 },
+  { code: 'LIPID-LDL', name: 'Lipid Panel - LDL Cholesterol', category: 'Chemistry', unit: 'mg/dL', referenceRange: '<100 mg/dL', isActive: 1 },
+  { code: 'LIPID-HDL', name: 'Lipid Panel - HDL Cholesterol', category: 'Chemistry', unit: 'mg/dL', referenceRange: '>40 mg/dL (M), >50 mg/dL (F)', isActive: 1 },
+  { code: 'TSH', name: 'Thyroid Stimulating Hormone', category: 'Endocrinology', unit: 'mIU/L', referenceRange: '0.4-4.0 mIU/L', isActive: 1 },
+  { code: 'PSA', name: 'Prostate Specific Antigen', category: 'Endocrinology', unit: 'ng/mL', referenceRange: '<4.0 ng/mL', isActive: 1 }
 ];
 
 const initialLabResults = [
@@ -271,6 +284,11 @@ export async function seedDatabase() {
     // Insert prescriptions
     for (const prescription of initialPrescriptions) {
       await db.insert(prescriptions).values(prescription).onConflictDoNothing();
+    }
+    
+    // Insert lab test types
+    for (const labTestType of initialLabTestTypes) {
+      await db.insert(labTestTypes).values(labTestType).onConflictDoNothing();
     }
     
     // Insert lab results

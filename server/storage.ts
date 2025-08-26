@@ -1,7 +1,7 @@
-import { type Patient, type InsertPatient, type Medicine, type InsertMedicine, type Prescription, type InsertPrescription, type Administration, type InsertAdministration, type AuditLog, type InsertAuditLog, type LabResult } from "@shared/schema";
+import { type Patient, type InsertPatient, type Medicine, type InsertMedicine, type Prescription, type InsertPrescription, type Administration, type InsertAdministration, type AuditLog, type InsertAuditLog, type LabTestType, type InsertLabTestType, type LabResult } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { patients, medicines, prescriptions, administrations, auditLogs, labResults } from "@shared/schema";
+import { patients, medicines, prescriptions, administrations, auditLogs, labTestTypes, labResults } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 // Initial data for demonstration
@@ -191,6 +191,11 @@ export interface IStorage {
   getAuditLogsByEntity(entityType: string, entityId: string): Promise<AuditLog[]>;
   createAuditLog(auditLog: InsertAuditLog): Promise<AuditLog>;
   
+  // Lab test type methods
+  getAllLabTestTypes(): Promise<LabTestType[]>;
+  getLabTestType(code: string): Promise<LabTestType | undefined>;
+  createLabTestType(labTestType: InsertLabTestType): Promise<LabTestType>;
+  
   // Lab result methods
   getLabResultsByPatient(patientId: string): Promise<LabResult[]>;
   createLabOrders(patientId: string, tests: string[], orderDate: string): Promise<number>;
@@ -204,6 +209,7 @@ export class MemStorage implements IStorage {
   private medicines: Map<string, Medicine>;
   private prescriptions: Map<string, Prescription[]>;
   private administrations: Map<string, Administration[]>;
+  private labTestTypes: Map<string, LabTestType>;
   private labResults: Map<string, LabResult[]>;
 
   constructor() {
@@ -211,6 +217,7 @@ export class MemStorage implements IStorage {
     this.medicines = new Map(medicinesData);
     this.prescriptions = new Map(prescriptionsData);
     this.administrations = new Map();
+    this.labTestTypes = new Map();
     this.labResults = new Map();
   }
 
@@ -354,6 +361,28 @@ export class MemStorage implements IStorage {
       changes: auditLog.changes ?? null,
       userId: auditLog.userId ?? null,
     };
+  }
+
+  async getAllLabTestTypes(): Promise<LabTestType[]> {
+    return Array.from(this.labTestTypes.values());
+  }
+
+  async getLabTestType(code: string): Promise<LabTestType | undefined> {
+    return this.labTestTypes.get(code);
+  }
+
+  async createLabTestType(insertLabTestType: InsertLabTestType): Promise<LabTestType> {
+    const labTestType: LabTestType = {
+      ...insertLabTestType,
+      id: randomUUID(),
+      category: insertLabTestType.category ?? null,
+      unit: insertLabTestType.unit ?? null,
+      referenceRange: insertLabTestType.referenceRange ?? null,
+      isActive: insertLabTestType.isActive ?? 1,
+      createdAt: new Date(),
+    };
+    this.labTestTypes.set(labTestType.code, labTestType);
+    return labTestType;
   }
 }
 
@@ -591,6 +620,32 @@ export class DatabaseStorage implements IStorage {
       console.error('Error creating lab orders:', error);
       throw error;
     }
+  }
+
+  async getAllLabTestTypes(): Promise<LabTestType[]> {
+    return await db.select().from(labTestTypes).where(eq(labTestTypes.isActive, 1));
+  }
+
+  async getLabTestType(code: string): Promise<LabTestType | undefined> {
+    const [labTestType] = await db.select().from(labTestTypes).where(eq(labTestTypes.code, code));
+    return labTestType;
+  }
+
+  async createLabTestType(insertLabTestType: InsertLabTestType): Promise<LabTestType> {
+    const [labTestType] = await db
+      .insert(labTestTypes)
+      .values(insertLabTestType)
+      .returning();
+    
+    // Log lab test type creation
+    await this.createAuditLog({
+      entityType: 'lab_test_type',
+      entityId: labTestType.id,
+      action: 'create',
+      changes: insertLabTestType as Record<string, any>,
+    });
+
+    return labTestType;
   }
 
   private determineLabStatus(testCode: string, value: number, normalRange: number[]): string {

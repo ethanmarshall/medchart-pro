@@ -65,6 +65,17 @@ export const auditLogs = pgTable("audit_logs", {
   userId: varchar("user_id"), // For future user tracking
 });
 
+export const labTestTypes = pgTable("lab_test_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code").notNull().unique(), // e.g., "CBC-HGB", "BMP-GLU"
+  name: text("name").notNull(), // e.g., "Complete Blood Count - Hemoglobin"
+  category: varchar("category"), // e.g., "Hematology", "Chemistry", "Endocrinology"
+  unit: varchar("unit"), // e.g., "g/dL", "mg/dL", "%"
+  referenceRange: varchar("reference_range"), // normal range for this test
+  isActive: integer("is_active").default(1), // 1 = active, 0 = inactive
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
 export const labResults = pgTable("lab_results", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   patientId: varchar("patient_id").notNull().references(() => patients.id),
@@ -100,6 +111,11 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   timestamp: true,
 });
 
+export const insertLabTestTypeSchema = createInsertSchema(labTestTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertLabResultSchema = createInsertSchema(labResults).omit({
   id: true,
   createdAt: true,
@@ -115,5 +131,7 @@ export type Administration = typeof administrations.$inferSelect;
 export type InsertAdministration = z.infer<typeof insertAdministrationSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type LabTestType = typeof labTestTypes.$inferSelect;
+export type InsertLabTestType = z.infer<typeof insertLabTestTypeSchema>;
 export type LabResult = typeof labResults.$inferSelect;
 export type InsertLabResult = z.infer<typeof insertLabResultSchema>;

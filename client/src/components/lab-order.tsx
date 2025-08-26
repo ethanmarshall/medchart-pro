@@ -2,24 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { type Patient, type LabResult } from "@shared/schema";
+import { type Patient, type LabTestType } from "@shared/schema";
 
 interface LabOrderProps {
   onOrderComplete: () => void;
 }
-
-const availableTests = [
-  { code: 'CBC-HGB', name: 'Complete Blood Count - Hemoglobin', unit: 'g/dL', referenceRange: '12.0-16.0 g/dL' },
-  { code: 'CBC-WBC', name: 'Complete Blood Count - White Blood Cells', unit: 'cells/μL', referenceRange: '4500-11000 cells/μL' },
-  { code: 'BMP-GLU', name: 'Basic Metabolic Panel - Glucose', unit: 'mg/dL', referenceRange: '70-100 mg/dL' },
-  { code: 'BMP-CREAT', name: 'Basic Metabolic Panel - Creatinine', unit: 'mg/dL', referenceRange: '0.6-1.2 mg/dL' },
-  { code: 'HbA1c', name: 'Hemoglobin A1C', unit: '%', referenceRange: '<7.0%' },
-  { code: 'LIPID-CHOL', name: 'Lipid Panel - Total Cholesterol', unit: 'mg/dL', referenceRange: '<200 mg/dL' },
-  { code: 'LIPID-LDL', name: 'Lipid Panel - LDL Cholesterol', unit: 'mg/dL', referenceRange: '<100 mg/dL' },
-  { code: 'LIPID-HDL', name: 'Lipid Panel - HDL Cholesterol', unit: 'mg/dL', referenceRange: '>40 mg/dL (M), >50 mg/dL (F)' },
-  { code: 'TSH', name: 'Thyroid Stimulating Hormone', unit: 'mIU/L', referenceRange: '0.4-4.0 mIU/L' },
-  { code: 'PSA', name: 'Prostate Specific Antigen', unit: 'ng/mL', referenceRange: '<4.0 ng/mL' }
-];
 
 export function LabOrder({ onOrderComplete }: LabOrderProps) {
   const [selectedPatient, setSelectedPatient] = useState("");
@@ -34,6 +21,10 @@ export function LabOrder({ onOrderComplete }: LabOrderProps) {
 
   const { data: patients = [], isLoading: patientsLoading } = useQuery<Patient[]>({
     queryKey: ['/api/patients'],
+  });
+
+  const { data: availableTests = [], isLoading: testsLoading } = useQuery<LabTestType[]>({
+    queryKey: ['/api/lab-test-types'],
   });
 
   const orderLabsMutation = useMutation({
@@ -173,8 +164,14 @@ export function LabOrder({ onOrderComplete }: LabOrderProps) {
               <i className="fas fa-flask mr-2"></i>Select Laboratory Tests ({selectedTests.length} selected)
             </h4>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {availableTests.map(test => (
+            {testsLoading ? (
+              <div className="text-center py-4">
+                <i className="fas fa-spinner fa-spin text-medical-primary"></i>
+                <span className="ml-2">Loading test types...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {availableTests.map(test => (
                 <label 
                   key={test.code} 
                   className={`flex items-start p-3 border-2 rounded-lg cursor-pointer transition-all ${
@@ -197,8 +194,9 @@ export function LabOrder({ onOrderComplete }: LabOrderProps) {
                     </div>
                   </div>
                 </label>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Error Display */}

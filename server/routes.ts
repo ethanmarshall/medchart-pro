@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAdministrationSchema, insertPrescriptionSchema, insertMedicineSchema } from "@shared/schema";
+import { insertPatientSchema, insertAdministrationSchema, insertPrescriptionSchema, insertMedicineSchema, insertLabTestTypeSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -376,6 +376,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Patient deleted successfully" });
     } catch (error) {
       console.error('Error deleting patient:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get all lab test types
+  app.get("/api/lab-test-types", async (req, res) => {
+    try {
+      const labTestTypes = await storage.getAllLabTestTypes();
+      res.json(labTestTypes);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create new lab test type
+  app.post("/api/lab-test-types", async (req, res) => {
+    try {
+      const validatedData = insertLabTestTypeSchema.parse(req.body);
+      const labTestType = await storage.createLabTestType(validatedData);
+      res.status(201).json(labTestType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid lab test type data", errors: error.errors });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });

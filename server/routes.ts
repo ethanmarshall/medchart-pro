@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAdministrationSchema, insertPrescriptionSchema } from "@shared/schema";
+import { insertPatientSchema, insertAdministrationSchema, insertPrescriptionSchema, insertMedicineSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -117,6 +117,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(labResults);
     } catch (error) {
       console.error('Error fetching lab results:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create new medicine
+  app.post("/api/medicines", async (req, res) => {
+    try {
+      const validatedData = insertMedicineSchema.parse(req.body);
+      const medicine = await storage.createMedicine(validatedData);
+      res.status(201).json(medicine);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid medicine data", errors: error.errors });
+      }
+      console.error('Error creating medicine:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

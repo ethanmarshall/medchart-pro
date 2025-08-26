@@ -175,6 +175,7 @@ export interface IStorage {
   // Medicine methods
   getMedicine(id: string): Promise<Medicine | undefined>;
   getAllMedicines(): Promise<Medicine[]>;
+  createMedicine(medicine: InsertMedicine): Promise<Medicine>;
   
   // Prescription methods
   getPrescriptionsByPatient(patientId: string): Promise<Prescription[]>;
@@ -230,6 +231,14 @@ export class MemStorage implements IStorage {
 
   async getAllMedicines(): Promise<Medicine[]> {
     return Array.from(this.medicines.values());
+  }
+
+  async createMedicine(insertMedicine: InsertMedicine): Promise<Medicine> {
+    const medicine: Medicine = {
+      ...insertMedicine,
+    };
+    this.medicines.set(medicine.id, medicine);
+    return medicine;
   }
 
   async getPrescriptionsByPatient(patientId: string): Promise<Prescription[]> {
@@ -365,6 +374,14 @@ export class DatabaseStorage implements IStorage {
 
   async getAllMedicines(): Promise<Medicine[]> {
     return await db.select().from(medicines);
+  }
+
+  async createMedicine(insertMedicine: InsertMedicine): Promise<Medicine> {
+    const [medicine] = await db
+      .insert(medicines)
+      .values(insertMedicine)
+      .returning();
+    return medicine;
   }
 
   async getPrescriptionsByPatient(patientId: string): Promise<Prescription[]> {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { type Patient } from "@shared/schema";
 import { MedicationAdmin } from "./medication-admin";
+import { AuditLogComponent } from "./audit-log";
 
 interface PatientChartProps {
   patient: Patient;
@@ -8,7 +9,7 @@ interface PatientChartProps {
 }
 
 export function PatientChart({ patient, onClear }: PatientChartProps) {
-  const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history'>('medication');
+  const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history' | 'audit'>('medication');
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -107,6 +108,17 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
               >
                 <i className="fas fa-history mr-2"></i>Administration History
               </button>
+              <button 
+                onClick={() => setActiveTab('audit')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'audit'
+                    ? 'border-medical-primary text-medical-primary'
+                    : 'border-transparent text-medical-text-muted hover:text-medical-text-primary'
+                }`}
+                data-testid="tab-audit-log"
+              >
+                <i className="fas fa-clipboard-list mr-2"></i>Change Log
+              </button>
             </nav>
           </div>
         </div>
@@ -146,6 +158,14 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
               <p className="text-sm">Administration history will be displayed here.</p>
             </div>
           </div>
+        )}
+
+        {activeTab === 'audit' && (
+          <AuditLogComponent 
+            entityType="patient" 
+            entityId={patient.id} 
+            title="Patient Change Log" 
+          />
         )}
       </div>
     </div>

@@ -1,5 +1,8 @@
-import { type Patient, type InsertPatient, type Medicine, type InsertMedicine, type Prescription, type InsertPrescription, type Administration, type InsertAdministration } from "@shared/schema";
+import { type Patient, type InsertPatient, type Medicine, type InsertMedicine, type Prescription, type InsertPrescription, type Administration, type InsertAdministration, type AuditLog, type InsertAuditLog } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { patients, medicines, prescriptions, administrations, auditLogs } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 // Initial data for demonstration
 const initialPatientsData = new Map<string, Patient>([
@@ -167,6 +170,7 @@ export interface IStorage {
   getPatient(id: string): Promise<Patient | undefined>;
   createPatient(patient: InsertPatient): Promise<Patient>;
   getAllPatients(): Promise<Patient[]>;
+  updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined>;
   
   // Medicine methods
   getMedicine(id: string): Promise<Medicine | undefined>;
@@ -179,6 +183,10 @@ export interface IStorage {
   // Administration methods
   getAdministrationsByPatient(patientId: string): Promise<Administration[]>;
   createAdministration(administration: InsertAdministration): Promise<Administration>;
+  
+  // Audit log methods
+  getAuditLogsByEntity(entityType: string, entityId: string): Promise<AuditLog[]>;
+  createAuditLog(auditLog: InsertAuditLog): Promise<AuditLog>;
 }
 
 export class MemStorage implements IStorage {
@@ -254,6 +262,157 @@ export class MemStorage implements IStorage {
     
     return administration;
   }
+
+  async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
+    const patient = this.patients.get(id);
+    if (!patient) return undefined;
+    
+    const updatedPatient = { ...patient, ...updates, chartData: updates.chartData ?? patient.chartData };
+    this.patients.set(id, updatedPatient);
+    return updatedPatient;
+  }
+
+  async getAuditLogsByEntity(entityType: string, entityId: string): Promise<AuditLog[]> {
+    // For MemStorage, return empty array since we don't store audit logs
+    return [];
+  }
+
+  async createAuditLog(auditLog: InsertAuditLog): Promise<AuditLog> {
+    // For MemStorage, return a mock audit log
+    return {
+      ...auditLog,
+      id: randomUUID(),
+      timestamp: new Date(),
+      changes: auditLog.changes ?? null,
+      userId: auditLog.userId ?? null,
+    };
+  }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getPatient(id: string): Promise<Patient | undefined> {
+    const [patient] = await db.select().from(patients).where(eq(patients.id, id));
+    return patient;
+  }
+
+  async createPatient(insertPatient: InsertPatient): Promise<Patient> {
+    const [patient] = await db
+      .insert(patients)
+      .values(insertPatient)
+      .returning();
+    
+    // Log patient creation
+    await this.createAuditLog({
+      entityType: 'patient',
+      entityId: patient.id,
+      action: 'create',
+      changes: insertPatient as Record<string, any>,
+    });
+    
+    return patient;
+  }
+
+  async getAllPatients(): Promise<Patient[]> {
+    return await db.select().from(patients);
+  }
+
+  async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
+    const [patient] = await db
+      .update(patients)
+      .set(updates)
+      .where(eq(patients.id, id))
+      .returning();
+    
+    if (patient) {
+      // Log patient update
+      await this.createAuditLog({
+        entityType: 'patient',
+        entityId: id,
+        action: 'update',
+        changes: updates as Record<string, any>,
+      });
+    }
+    
+    return patient;
+  }
+
+  async getMedicine(id: string): Promise<Medicine | undefined> {
+    const [medicine] = await db.select().from(medicines).where(eq(medicines.id, id));
+    return medicine;
+  }
+
+  async getAllMedicines(): Promise<Medicine[]> {
+    return await db.select().from(medicines);
+  }
+
+  async getPrescriptionsByPatient(patientId: string): Promise<Prescription[]> {
+    return await db.select().from(prescriptions).where(eq(prescriptions.patientId, patientId));
+  }
+
+  async createPrescription(insertPrescription: InsertPrescription): Promise<Prescription> {
+    const [prescription] = await db
+      .insert(prescriptions)
+      .values(insertPrescription)
+      .returning();
+    
+    // Log prescription creation
+    await this.createAuditLog({
+      entityType: 'prescription',
+      entityId: prescription.id,
+      action: 'create',
+      changes: insertPrescription as Record<string, any>,
+    });
+    
+    return prescription;
+  }
+
+  async getAdministrationsByPatient(patientId: string): Promise<Administration[]> {
+    return await db.select().from(administrations).where(eq(administrations.patientId, patientId));
+  }
+
+  async createAdministration(insertAdministration: InsertAdministration): Promise<Administration> {
+    const [administration] = await db
+      .insert(administrations)
+      .values(insertAdministration)
+      .returning();
+    
+    // Log administration
+    await this.createAuditLog({
+      entityType: 'administration',
+      entityId: administration.id,
+      action: 'administer',
+      changes: {
+        patientId: insertAdministration.patientId,
+        medicineId: insertAdministration.medicineId,
+        status: insertAdministration.status,
+        message: insertAdministration.message,
+        administeredAt: administration.administeredAt?.toISOString() ?? null,
+      } as Record<string, any>,
+    });
+    
+    return administration;
+  }
+
+  async getAuditLogsByEntity(entityType: string, entityId: string): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(and(
+        eq(auditLogs.entityType, entityType),
+        eq(auditLogs.entityId, entityId)
+      ))
+      .orderBy(desc(auditLogs.timestamp));
+  }
+
+  async createAuditLog(insertAuditLog: InsertAuditLog): Promise<AuditLog> {
+    const [auditLog] = await db
+      .insert(auditLogs)
+      .values(insertAuditLog)
+      .returning();
+    
+    return auditLog;
+  }
+}
+
+export const storage = new DatabaseStorage();

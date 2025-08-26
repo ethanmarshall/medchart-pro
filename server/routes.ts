@@ -99,6 +99,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get audit logs for a specific entity
+  app.get("/api/audit/:entityType/:entityId", async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      const auditLogs = await storage.getAuditLogsByEntity(entityType, entityId);
+      res.json(auditLogs);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update patient data
+  app.patch("/api/patients/:id", async (req, res) => {
+    try {
+      const updates = insertPatientSchema.partial().parse(req.body);
+      const patient = await storage.updatePatient(req.params.id, updates);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      res.json(patient);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid patient data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

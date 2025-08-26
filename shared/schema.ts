@@ -50,6 +50,16 @@ export const administrations = pgTable("administrations", {
   message: text("message").notNull(),
 });
 
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(), // 'patient', 'administration', 'prescription'
+  entityId: varchar("entity_id").notNull(),
+  action: text("action").notNull(), // 'create', 'update', 'delete', 'administer'
+  changes: json("changes").$type<Record<string, any>>(),
+  timestamp: timestamp("timestamp").default(sql`now()`),
+  userId: varchar("user_id"), // For future user tracking
+});
+
 export const insertPatientSchema = createInsertSchema(patients).omit({
   createdAt: true,
 });
@@ -65,6 +75,11 @@ export const insertAdministrationSchema = createInsertSchema(administrations).om
   administeredAt: true,
 });
 
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
 export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type Medicine = typeof medicines.$inferSelect;
@@ -73,3 +88,5 @@ export type Prescription = typeof prescriptions.$inferSelect;
 export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
 export type Administration = typeof administrations.$inferSelect;
 export type InsertAdministration = z.infer<typeof insertAdministrationSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;

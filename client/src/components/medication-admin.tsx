@@ -15,7 +15,6 @@ interface LogEntry {
 
 export function MedicationAdmin({ patient }: MedicationAdminProps) {
   const [log, setLog] = useState<LogEntry[]>([]);
-  const [verifiedMeds, setVerifiedMeds] = useState<Record<string, Date>>({});
   const medScannerRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -79,25 +78,31 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
           status: 'error',
           message: errorMessage
         });
-      } else if (verifiedMeds[medId]) {
-        const warningMessage = `WARNING: '${medicine.name}' has already been administered.`;
-        addLogEntry(warningMessage, 'warning');
-        createAdministrationMutation.mutate({
-          patientId: patient.id,
-          medicineId: medId,
-          status: 'warning',
-          message: warningMessage
-        });
       } else {
-        setVerifiedMeds(prev => ({ ...prev, [medId]: new Date() }));
-        const successMessage = `SUCCESS: Administered '${medicine.name}'.`;
-        addLogEntry(successMessage, 'success');
-        createAdministrationMutation.mutate({
-          patientId: patient.id,
-          medicineId: medId,
-          status: 'success',
-          message: successMessage
-        });
+        // Check if medicine has been successfully administered before
+        const alreadyAdministered = administrations.some(
+          adm => adm.medicineId === medId && adm.status === 'success'
+        );
+        
+        if (alreadyAdministered) {
+          const warningMessage = `WARNING: '${medicine.name}' has already been administered.`;
+          addLogEntry(warningMessage, 'warning');
+          createAdministrationMutation.mutate({
+            patientId: patient.id,
+            medicineId: medId,
+            status: 'warning',
+            message: warningMessage
+          });
+        } else {
+          const successMessage = `SUCCESS: Administered '${medicine.name}'.`;
+          addLogEntry(successMessage, 'success');
+          createAdministrationMutation.mutate({
+            patientId: patient.id,
+            medicineId: medId,
+            status: 'success',
+            message: successMessage
+          });
+        }
       }
       
       e.currentTarget.value = '';
@@ -109,7 +114,10 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
     return { ...p, medicine };
   }).filter(p => p.medicine);
 
-  const administeredCount = Object.keys(verifiedMeds).length;
+  // Calculate progress based on successful administrations from database
+  const successfulAdministrations = administrations.filter(adm => adm.status === 'success');
+  const uniqueAdministeredMeds = new Set(successfulAdministrations.map(adm => adm.medicineId));
+  const administeredCount = uniqueAdministeredMeds.size;
   const totalCount = prescribedMedicines.length;
   const progressPercentage = totalCount > 0 ? Math.round((administeredCount / totalCount) * 100) : 0;
 
@@ -194,7 +202,12 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
               </p>
             ) : (
               prescribedMedicines.map((prescription) => {
-                const isAdministered = verifiedMeds[prescription.medicineId];
+                // Check if this medicine has been successfully administered
+                const successfulAdmin = administrations.find(
+                  adm => adm.medicineId === prescription.medicineId && adm.status === 'success'
+                );
+                const isAdministered = !!successfulAdmin;
+                
                 return (
                   <div 
                     key={prescription.id}
@@ -221,9 +234,9 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
                         <i className={`fas ${isAdministered ? 'fa-check' : 'fa-clock'} mr-1`}></i>
                         {isAdministered ? 'Administered' : 'Pending'}
                       </span>
-                      {isAdministered && (
+                      {isAdministered && successfulAdmin && (
                         <p className="text-xs text-medical-text-muted mt-1">
-                          {isAdministered.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {successfulAdmin.administeredAt?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       )}
                     </div>

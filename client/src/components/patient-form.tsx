@@ -13,6 +13,7 @@ const generateNewPatientId = () => {
 };
 
 export function PatientForm({ onPatientAdded }: PatientFormProps) {
+  const [showWarning, setShowWarning] = useState(true);
   const [generatedId] = useState(() => generateNewPatientId());
   const [formData, setFormData] = useState<Omit<InsertPatient, 'id' | 'chartData'>>({
     name: '',
@@ -82,7 +83,45 @@ export function PatientForm({ onPatientAdded }: PatientFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      {/* PII Warning Modal */}
+      {showWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl border border-medical-border p-6 max-w-md mx-4 w-full">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i className="fas fa-exclamation-triangle text-orange-600 text-2xl"></i>
+              </div>
+              <h3 className="text-xl font-bold text-medical-text-primary mb-2">Training Environment Warning</h3>
+              <div className="text-left space-y-3 text-sm text-medical-text-secondary">
+                <p className="font-semibold text-orange-600">⚠️ DO NOT ENTER REAL PATIENT INFORMATION</p>
+                <p>This is a training application. For educational purposes only:</p>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>Use fictional names and data only</li>
+                  <li>Do not enter real patient information</li>
+                  <li>Do not enter real personal identifiable information (PII)</li>
+                  <li>Data entered may not be secure or private</li>
+                </ul>
+                <p className="font-medium text-medical-text-primary">Examples of safe test data:</p>
+                <ul className="list-disc ml-5 space-y-1 text-xs">
+                  <li>Names: "John Doe", "Jane Smith", "Test Patient"</li>
+                  <li>Use fictional dates and information</li>
+                </ul>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setShowWarning(false)}
+              className="w-full px-4 py-3 bg-medical-primary text-white rounded-lg hover:bg-medical-primary/90 font-medium transition-colors"
+              data-testid="button-understand-warning"
+            >
+              <i className="fas fa-check mr-2"></i>I Understand - Continue to Form
+            </button>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-2xl font-bold text-medical-text-primary mb-2">Register New Patient</h3>
         <p className="text-medical-text-muted">Enter complete patient information for medical record creation</p>
@@ -373,5 +412,6 @@ export function PatientForm({ onPatientAdded }: PatientFormProps) {
         </button>
       </div>
     </form>
+    </>
   );
 }

@@ -1,0 +1,639 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Chart System - Medical Administration Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'sans': ['Inter', 'system-ui', 'sans-serif'],
+                },
+                colors: {
+                    medical: {
+                        primary: '#0f766e', // Teal-700
+                        secondary: '#155e75', // Cyan-800
+                        success: '#047857', // Emerald-700
+                        warning: '#d97706', // Amber-600
+                        danger: '#dc2626', // Red-600
+                        background: '#f8fafc', // Slate-50
+                        card: '#ffffff',
+                        border: '#e2e8f0', // Slate-200
+                        text: {
+                            primary: '#0f172a', // Slate-900
+                            secondary: '#475569', // Slate-600
+                            muted: '#64748b' // Slate-500
+                        }
+                    }
+                },
+                boxShadow: {
+                    'medical': '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
+                    'medical-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)'
+                }
+            }
+        }
+    };
+    </script>
+</head>
+<body class="bg-medical-background font-sans antialiased">
+    <!-- @COMPONENT: AppContainer [Main application wrapper] -->
+    <div class="min-h-screen bg-gradient-to-br from-medical-background to-slate-100">
+        
+        <!-- @COMPONENT: Header [Top navigation and branding] -->
+        <header class="bg-white border-b border-medical-border shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-medical-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-hospital-symbol text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-medical-text-primary">MedChart Pro</h1>
+                            <p class="text-sm text-medical-text-muted">Patient Management System</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="hidden md:block text-right">
+                            <p class="text-sm font-medium text-medical-text-primary" data-bind="currentUser.name">Dr. Sarah Johnson</p>
+                            <p class="text-xs text-medical-text-muted" data-bind="currentUser.department">Internal Medicine</p>
+                        </div>
+                        <div class="w-8 h-8 bg-medical-secondary rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            
+            <!-- @COMPONENT: HomeView [Main dashboard view] -->
+            <div id="home-view" class="space-y-6">
+                
+                <!-- Welcome Section -->
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-medical-text-primary mb-2">Patient Chart System</h2>
+                    <p class="text-medical-text-secondary max-w-2xl mx-auto">
+                        Securely manage patient records, verify medications, and track administration with our comprehensive healthcare platform.
+                    </p>
+                </div>
+
+                <!-- Quick Actions Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- @COMPONENT: QuickActionCard [Scan Patient] -->
+                    <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6 hover:shadow-medical-lg transition-shadow duration-200">
+                        <div class="flex items-center justify-center w-12 h-12 bg-medical-primary rounded-lg mb-4 mx-auto">
+                            <i class="fas fa-qrcode text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-medical-text-primary text-center mb-2">Scan Patient</h3>
+                        <p class="text-medical-text-muted text-center text-sm mb-4">Quickly access patient records using barcode scanner</p>
+                        <button class="w-full bg-medical-primary hover:bg-teal-800 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200" data-event="click:showScannerView">
+                            Start Scanning
+                        </button>
+                    </div>
+
+                    <!-- @COMPONENT: QuickActionCard [Add Patient] -->
+                    <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6 hover:shadow-medical-lg transition-shadow duration-200">
+                        <div class="flex items-center justify-center w-12 h-12 bg-medical-secondary rounded-lg mb-4 mx-auto">
+                            <i class="fas fa-user-plus text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-medical-text-primary text-center mb-2">New Patient</h3>
+                        <p class="text-medical-text-muted text-center text-sm mb-4">Register a new patient in the system</p>
+                        <button class="w-full bg-medical-secondary hover:bg-cyan-900 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200" data-event="click:showAddPatientView">
+                            Add Patient
+                        </button>
+                    </div>
+
+                    <!-- @COMPONENT: QuickActionCard [Recent Activity] -->
+                    <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6">
+                        <div class="flex items-center justify-center w-12 h-12 bg-slate-600 rounded-lg mb-4 mx-auto">
+                            <i class="fas fa-history text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-medical-text-primary text-center mb-2">Recent Activity</h3>
+                        <p class="text-medical-text-muted text-center text-sm mb-4">View recent patient interactions</p>
+                        <button class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200" data-event="click:showRecentActivity">
+                            View History
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="bg-white rounded-xl shadow-medical border border-medical-border">
+                    
+                    <!-- Tab Navigation -->
+                    <div class="border-b border-medical-border">
+                        <nav class="flex justify-center" aria-label="Tabs">
+                            <button class="tab-button active px-6 py-4 text-sm font-medium border-b-2 border-medical-primary text-medical-primary" data-tab="scan">
+                                <i class="fas fa-qrcode mr-2"></i>Scan Patient
+                            </button>
+                            <button class="tab-button px-6 py-4 text-sm font-medium border-b-2 border-transparent text-medical-text-muted hover:text-medical-text-primary hover:border-gray-300" data-tab="add">
+                                <i class="fas fa-user-plus mr-2"></i>Register Patient
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="p-8">
+                        
+                        <!-- @COMPONENT: ScannerView [Patient barcode scanning] -->
+                        <div id="scan-tab" class="tab-content">
+                            <div class="text-center max-w-lg mx-auto">
+                                <div class="mb-6">
+                                    <i class="fas fa-qrcode text-6xl text-medical-primary mb-4"></i>
+                                    <h3 class="text-2xl font-bold text-medical-text-primary mb-2">Scan Patient Barcode</h3>
+                                    <p class="text-medical-text-muted">Use your scanner or manually enter the patient ID below</p>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Scan or Enter Patient ID..." 
+                                        class="w-full text-center text-lg p-4 border-2 border-medical-border rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent transition duration-200" 
+                                        data-implementation="Should auto-focus and handle barcode scanner input"
+                                        data-bind="patientScanInput"
+                                    />
+                                    
+                                    <!-- Error Message (Hidden by default) -->
+                                    <div class="hidden p-4 bg-red-50 border border-red-200 rounded-lg text-red-700" data-mock="true">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        Patient ID not found. Please try again.
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 p-6 bg-slate-50 rounded-lg">
+                                    <h4 class="font-semibold text-medical-text-primary mb-3">How to Use Scanner:</h4>
+                                    <ul class="text-sm text-medical-text-muted space-y-2 text-left">
+                                        <li><i class="fas fa-circle text-xs mr-2"></i>Point scanner at patient wristband barcode</li>
+                                        <li><i class="fas fa-circle text-xs mr-2"></i>Wait for successful beep confirmation</li>
+                                        <li><i class="fas fa-circle text-xs mr-2"></i>Patient information will load automatically</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- @COMPONENT: AddPatientForm [New patient registration] -->
+                        <div id="add-tab" class="tab-content hidden">
+                            <form class="space-y-6" data-event="submit:handlePatientRegistration">
+                                <div class="text-center mb-6">
+                                    <h3 class="text-2xl font-bold text-medical-text-primary mb-2">Register New Patient</h3>
+                                    <p class="text-medical-text-muted">Enter complete patient information for medical record creation</p>
+                                </div>
+
+                                <!-- Generated Patient ID Display -->
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                                    <p class="text-sm font-medium text-medical-text-secondary mb-1">Generated Patient ID (Barcode)</p>
+                                    <p class="text-2xl font-mono font-bold text-medical-primary" data-bind="generatedPatientId" data-mock="true">112233445567</p>
+                                    <p class="text-xs text-medical-text-muted mt-1">This ID will be printed on the patient wristband</p>
+                                </div>
+
+                                <!-- Patient Information Grid -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    
+                                    <!-- Personal Information -->
+                                    <div class="space-y-4">
+                                        <h4 class="font-semibold text-medical-text-primary border-b border-medical-border pb-2">Personal Information</h4>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-medical-text-secondary mb-2">Full Name *</label>
+                                            <input type="text" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" placeholder="Enter patient's full name" data-bind="patient.name" />
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-medical-text-secondary mb-2">Date of Birth *</label>
+                                                <input type="date" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" data-bind="patient.dob" />
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-medical-text-secondary mb-2">Age *</label>
+                                                <input type="number" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" placeholder="Age" data-bind="patient.age" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-medical-text-secondary mb-2">Sex *</label>
+                                                <select required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent bg-white" data-bind="patient.sex">
+                                                    <option value="">Select...</option>
+                                                    <option value="Female">Female</option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-medical-text-secondary mb-2">Dose Weight *</label>
+                                                <input type="text" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" placeholder="e.g., 70 kg" data-bind="patient.doseWeight" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Medical Information -->
+                                    <div class="space-y-4">
+                                        <h4 class="font-semibold text-medical-text-primary border-b border-medical-border pb-2">Medical Information</h4>
+                                        
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-medical-text-secondary mb-2">MRN *</label>
+                                                <input type="text" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" placeholder="Medical Record Number" data-bind="patient.mrn" />
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-medical-text-secondary mb-2">FIN *</label>
+                                                <input type="text" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" placeholder="Financial Number" data-bind="patient.fin" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-medical-text-secondary mb-2">Admission Date *</label>
+                                            <input type="date" required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent" data-bind="patient.admitted" />
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-medical-text-secondary mb-2">Code Status *</label>
+                                            <select required class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent bg-white" data-bind="patient.codeStatus">
+                                                <option value="">Select code status...</option>
+                                                <option value="Full Code">Full Code</option>
+                                                <option value="DNR/DNI">DNR/DNI</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-medical-text-secondary mb-2">Isolation Precautions</label>
+                                            <select class="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent bg-white" data-bind="patient.isolation">
+                                                <option value="None">None</option>
+                                                <option value="Contact Precautions">Contact Precautions</option>
+                                                <option value="Droplet Precautions">Droplet Precautions</option>
+                                                <option value="Airborne Precautions">Airborne Precautions</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="flex justify-center space-x-4 pt-6 border-t border-medical-border">
+                                    <button type="button" class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200" data-event="click:cancelRegistration">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="px-6 py-3 bg-medical-primary hover:bg-teal-800 text-white font-medium rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-save mr-2"></i>Save Patient
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: HomeView -->
+
+            <!-- @COMPONENT: PatientDetailsView [Patient information and medication management] -->
+            <div id="patient-view" class="hidden space-y-6">
+                
+                <!-- Patient Header Card -->
+                <div class="bg-white rounded-xl shadow-medical border border-medical-border">
+                    <div class="p-6 border-b border-medical-border">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-16 h-16 bg-gradient-to-br from-medical-primary to-teal-600 rounded-full flex items-center justify-center text-white text-xl font-bold" data-bind="patient.initials" data-mock="true">OC</div>
+                                <div>
+                                    <h2 class="text-2xl font-bold text-medical-text-primary" data-bind="patient.name" data-mock="true">Olivia Chen</h2>
+                                    <div class="flex items-center space-x-4 mt-1">
+                                        <span class="text-medical-text-muted" data-bind="patient.age" data-mock="true">37 years old</span>
+                                        <span class="text-medical-text-muted">•</span>
+                                        <span class="text-medical-text-muted" data-bind="patient.sex" data-mock="true">Female</span>
+                                        <span class="text-medical-text-muted">•</span>
+                                        <span class="text-medical-text-muted" data-bind="patient.doseWeight" data-mock="true">68 kg</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-medical-text-muted hover:text-medical-text-primary" data-event="click:returnToHome">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Patient Info Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-xs font-medium text-medical-text-muted uppercase tracking-wide">MRN</p>
+                                <p class="font-mono font-semibold text-medical-text-primary" data-bind="patient.mrn" data-mock="true">MRN7384920</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-xs font-medium text-medical-text-muted uppercase tracking-wide">Admitted</p>
+                                <p class="font-semibold text-medical-text-primary" data-bind="patient.admitted" data-mock="true">2025-08-22</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-xs font-medium text-medical-text-muted uppercase tracking-wide">Code Status</p>
+                                <p class="font-semibold text-medical-text-primary" data-bind="patient.codeStatus" data-mock="true">Full Code</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-xs font-medium text-medical-text-muted uppercase tracking-wide">Isolation</p>
+                                <p class="font-semibold text-medical-success" data-bind="patient.isolation" data-mock="true">None</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Patient Navigation Tabs -->
+                    <div class="px-6">
+                        <nav class="flex space-x-8" aria-label="Patient Tabs">
+                            <button class="patient-tab-button active py-4 px-1 border-b-2 border-medical-primary text-medical-primary font-medium text-sm" data-tab="medication">
+                                <i class="fas fa-pills mr-2"></i>Medication Administration
+                            </button>
+                            <button class="patient-tab-button py-4 px-1 border-b-2 border-transparent text-medical-text-muted hover:text-medical-text-primary font-medium text-sm" data-tab="chart">
+                                <i class="fas fa-file-medical mr-2"></i>Chart Data
+                            </button>
+                            <button class="patient-tab-button py-4 px-1 border-b-2 border-transparent text-medical-text-muted hover:text-medical-text-primary font-medium text-sm" data-tab="history">
+                                <i class="fas fa-history mr-2"></i>Administration History
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- @COMPONENT: MedicationAdministration [Left Panel] -->
+                    <div class="space-y-6">
+                        
+                        <!-- Medicine Scanner -->
+                        <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6">
+                            <h3 class="text-lg font-semibold text-medical-text-primary mb-4">
+                                <i class="fas fa-qrcode text-medical-primary mr-2"></i>Medicine Barcode Scanner
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <input 
+                                    type="text" 
+                                    placeholder="Scan or Enter Medicine ID..." 
+                                    class="w-full text-center text-lg p-4 border-2 border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary focus:border-transparent transition duration-200" 
+                                    data-implementation="Should handle medicine barcode scanning with Enter key"
+                                    data-bind="medicineScanInput"
+                                />
+                                
+                                <div class="bg-slate-50 p-4 rounded-lg">
+                                    <h4 class="font-medium text-medical-text-primary mb-2">Scanning Instructions:</h4>
+                                    <ul class="text-sm text-medical-text-muted space-y-1">
+                                        <li>• Scan medicine package barcode</li>
+                                        <li>• System will verify against prescribed medications</li>
+                                        <li>• Confirmation will be logged automatically</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Verification Log -->
+                        <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6">
+                            <h3 class="text-lg font-semibold text-medical-text-primary mb-4">
+                                <i class="fas fa-clipboard-list text-medical-primary mr-2"></i>Verification Log
+                            </h3>
+                            
+                            <div class="h-64 overflow-y-auto bg-slate-50 border border-medical-border rounded-lg p-4 space-y-3">
+                                <!-- @MAP: logEntries.map(entry => ( -->
+                                <!-- Success Entry -->
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <div class="w-2 h-2 bg-medical-success rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-medical-success font-medium">SUCCESS: Administered 'Ibuprofen/Motrin'</p>
+                                        <p class="text-xs text-medical-text-muted font-mono">[10:30:45 AM]</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Warning Entry -->
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <div class="w-2 h-2 bg-medical-warning rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-medical-warning font-medium">WARNING: 'Acetaminophen' has already been administered.</p>
+                                        <p class="text-xs text-medical-text-muted font-mono">[10:28:12 AM]</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Error Entry -->
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <div class="w-2 h-2 bg-medical-danger rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-medical-danger font-bold">DANGER: Scanned medicine 'Morphine' is NOT prescribed for this patient.</p>
+                                        <p class="text-xs text-medical-text-muted font-mono">[10:25:33 AM]</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                                
+                                <!-- Empty State -->
+                                <div class="text-center py-8 text-medical-text-muted hidden" data-implementation="Show when no log entries exist">
+                                    <i class="fas fa-clipboard-list text-3xl mb-2 opacity-50"></i>
+                                    <p class="text-sm">Scan history will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- @COMPONENT: MedicationList [Right Panel] -->
+                    <div class="space-y-6">
+                        
+                        <!-- Prescribed Medicines -->
+                        <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6">
+                            <h3 class="text-lg font-semibold text-medical-text-primary mb-4">
+                                <i class="fas fa-prescription-bottle-alt text-medical-primary mr-2"></i>Prescribed Medicines
+                            </h3>
+                            
+                            <div class="space-y-3">
+                                <!-- @MAP: prescribedMedicines.map(medicine => ( -->
+                                <!-- Administered Medicine -->
+                                <div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg" data-mock="true">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-medical-success rounded-full"></div>
+                                        <div>
+                                            <p class="font-medium text-medical-text-primary" data-bind="medicine.name">Ibuprofen/Motrin</p>
+                                            <p class="text-xs text-medical-text-muted font-mono" data-bind="medicine.id">ID: 3576934</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-medical-success text-white">
+                                            <i class="fas fa-check mr-1"></i>Administered
+                                        </span>
+                                        <p class="text-xs text-medical-text-muted mt-1" data-bind="medicine.administeredTime">10:30 AM</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Pending Medicine -->
+                                <div class="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg" data-mock="true">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-medical-warning rounded-full"></div>
+                                        <div>
+                                            <p class="font-medium text-medical-text-primary" data-bind="medicine.name">Ephedrine</p>
+                                            <p class="text-xs text-medical-text-muted font-mono" data-bind="medicine.id">ID: 95283134</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-medical-warning text-white">
+                                        <i class="fas fa-clock mr-1"></i>Pending
+                                    </span>
+                                </div>
+                                
+                                <!-- Pending Medicine -->
+                                <div class="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg" data-mock="true">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-medical-warning rounded-full"></div>
+                                        <div>
+                                            <p class="font-medium text-medical-text-primary" data-bind="medicine.name">Toradol</p>
+                                            <p class="text-xs text-medical-text-muted font-mono" data-bind="medicine.id">ID: 6032924</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-medical-warning text-white">
+                                        <i class="fas fa-clock mr-1"></i>Pending
+                                    </span>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Administration Summary -->
+                        <div class="bg-white rounded-xl shadow-medical border border-medical-border p-6">
+                            <h3 class="text-lg font-semibold text-medical-text-primary mb-4">
+                                <i class="fas fa-chart-pie text-medical-primary mr-2"></i>Administration Summary
+                            </h3>
+                            
+                            <div class="grid grid-cols-3 gap-4 mb-4">
+                                <div class="text-center p-3 bg-green-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-medical-success" data-bind="stats.administered" data-mock="true">1</p>
+                                    <p class="text-xs text-medical-text-muted font-medium">Administered</p>
+                                </div>
+                                <div class="text-center p-3 bg-amber-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-medical-warning" data-bind="stats.pending" data-mock="true">2</p>
+                                    <p class="text-xs text-medical-text-muted font-medium">Pending</p>
+                                </div>
+                                <div class="text-center p-3 bg-slate-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-medical-text-primary" data-bind="stats.total" data-mock="true">3</p>
+                                    <p class="text-xs text-medical-text-muted font-medium">Total</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                <div class="bg-medical-success h-2 rounded-full transition-all duration-300" style="width: 33%" data-bind="progressPercentage"></div>
+                            </div>
+                            <p class="text-center text-sm text-medical-text-muted">
+                                <span data-bind="progressText" data-mock="true">33% Complete</span> • Last updated: <span data-bind="lastUpdated" data-mock="true">10:30 AM</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: PatientDetailsView -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: AppContainer -->
+
+    <script>
+    // Simple tab functionality - in a real app, this would be React state management
+    (function() {
+        // Home page tabs
+        const homeTabButtons = document.querySelectorAll('.tab-button');
+        const homeTabContents = document.querySelectorAll('.tab-content');
+        
+        homeTabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Update button states
+                homeTabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'border-medical-primary', 'text-medical-primary');
+                    btn.classList.add('border-transparent', 'text-medical-text-muted');
+                });
+                this.classList.add('active', 'border-medical-primary', 'text-medical-primary');
+                this.classList.remove('border-transparent', 'text-medical-text-muted');
+                
+                // Show/hide content
+                homeTabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(targetTab + '-tab').classList.remove('hidden');
+            });
+        });
+        
+        // Patient page tabs (placeholder - would be implemented in React)
+        const patientTabButtons = document.querySelectorAll('.patient-tab-button');
+        patientTabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                patientTabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'border-medical-primary', 'text-medical-primary');
+                    btn.classList.add('border-transparent', 'text-medical-text-muted');
+                });
+                this.classList.add('active', 'border-medical-primary', 'text-medical-primary');
+                this.classList.remove('border-transparent', 'text-medical-text-muted');
+                
+                // TODO: Show/hide patient tab content based on selection
+            });
+        });
+
+        // Demo navigation functionality
+        const scannerButtons = document.querySelectorAll('[data-event="click:showScannerView"]');
+        const addPatientButtons = document.querySelectorAll('[data-event="click:showAddPatientView"]');
+        
+        scannerButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Switch to scan tab
+                document.querySelector('.tab-button[data-tab="scan"]').click();
+            });
+        });
+        
+        addPatientButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Switch to add patient tab
+                document.querySelector('.tab-button[data-tab="add"]').click();
+            });
+        });
+        
+        // Simulate patient scanning (demo functionality)
+        const patientScanInput = document.querySelector('[data-bind="patientScanInput"]');
+        if (patientScanInput) {
+            patientScanInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.value.trim()) {
+                    // In a real app, this would validate against the patient database
+                    // For demo purposes, simulate successful scan
+                    if (this.value.trim() === '112233445566') {
+                        // Hide home view and show patient view
+                        document.getElementById('home-view').classList.add('hidden');
+                        document.getElementById('patient-view').classList.remove('hidden');
+                    } else {
+                        // Show error message
+                        const errorDiv = this.parentElement.querySelector('.hidden');
+                        errorDiv.classList.remove('hidden');
+                        setTimeout(() => {
+                            errorDiv.classList.add('hidden');
+                        }, 3000);
+                    }
+                    this.value = '';
+                }
+            });
+        }
+        
+        // Return to home functionality
+        const returnButtons = document.querySelectorAll('[data-event="click:returnToHome"]');
+        returnButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                document.getElementById('patient-view').classList.add('hidden');
+                document.getElementById('home-view').classList.remove('hidden');
+            });
+        });
+        
+        // Focus management for accessibility
+        const focusableInputs = document.querySelectorAll('input[type="text"], input[type="date"], select');
+        focusableInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.classList.add('ring-2', 'ring-medical-primary');
+            });
+            input.addEventListener('blur', function() {
+                this.classList.remove('ring-2', 'ring-medical-primary');
+            });
+        });
+
+        // Auto-focus first input when page loads
+        const firstInput = document.querySelector('input[data-bind="patientScanInput"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    })();
+    </script>
+</body>
+</html>

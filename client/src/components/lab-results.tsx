@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Patient, type LabResult } from "@shared/schema";
 
@@ -6,6 +7,7 @@ interface LabResultsProps {
 }
 
 export function LabResults({ patient }: LabResultsProps) {
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const { data: labResults = [], isLoading } = useQuery<LabResult[]>({
     queryKey: ['/api/patients', patient.id, 'lab-results'],
   });
@@ -53,8 +55,34 @@ export function LabResults({ patient }: LabResultsProps) {
         <h3 className="text-lg font-semibold text-medical-text-primary">
           <i className="fas fa-vial text-medical-primary mr-2"></i>Laboratory Results
         </h3>
-        <div className="text-sm text-medical-text-muted">
-          {labResults.length} result{labResults.length !== 1 ? 's' : ''}
+        <div className="flex items-center space-x-4">
+          <div className="text-sm text-medical-text-muted">
+            {labResults.length} result{labResults.length !== 1 ? 's' : ''}
+          </div>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'cards' 
+                  ? 'bg-white text-medical-primary shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              data-testid="button-cards-view"
+            >
+              <i className="fas fa-th-large mr-1"></i>Cards
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'table' 
+                  ? 'bg-white text-medical-primary shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              data-testid="button-table-view"
+            >
+              <i className="fas fa-table mr-1"></i>Table
+            </button>
+          </div>
         </div>
       </div>
 
@@ -64,7 +92,7 @@ export function LabResults({ patient }: LabResultsProps) {
           <p className="text-lg font-medium mb-2">No Lab Results</p>
           <p className="text-sm">No laboratory test results available for this patient.</p>
         </div>
-      ) : (
+      ) : viewMode === 'cards' ? (
         <div className="space-y-4">
           {labResults
             .sort((a, b) => {
@@ -119,6 +147,71 @@ export function LabResults({ patient }: LabResultsProps) {
                 </div>
               </div>
             ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse" data-testid="lab-results-table">
+            <thead>
+              <tr className="border-b-2 border-medical-border">
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Test Name</th>
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Code</th>
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Value</th>
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Reference Range</th>
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Status</th>
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Collected</th>
+                <th className="text-left p-3 font-semibold text-medical-text-primary">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {labResults
+                .sort((a, b) => {
+                  const aDate = a.takenAt ? new Date(a.takenAt).getTime() : 0;
+                  const bDate = b.takenAt ? new Date(b.takenAt).getTime() : 0;
+                  return bDate - aDate;
+                })
+                .map((result) => (
+                  <tr 
+                    key={result.id} 
+                    className="border-b border-medical-border hover:bg-slate-50 transition-colors"
+                    data-testid={`table-row-${result.id}`}
+                  >
+                    <td className="p-3">
+                      <div className="font-medium text-medical-text-primary">
+                        {result.testName}
+                      </div>
+                    </td>
+                    <td className="p-3 text-sm text-medical-text-muted">
+                      {result.testCode || '-'}
+                    </td>
+                    <td className="p-3">
+                      <span className="font-medium text-medical-text-primary">
+                        {result.value} {result.unit}
+                      </span>
+                    </td>
+                    <td className="p-3 text-sm text-medical-text-muted">
+                      {result.referenceRange || 'N/A'}
+                    </td>
+                    <td className="p-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(result.status)}`}>
+                        <i className={`${getStatusIcon(result.status)} mr-1`}></i>
+                        {result.status.charAt(0).toUpperCase() + result.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-sm text-medical-text-muted">
+                      {result.takenAt 
+                        ? new Date(result.takenAt).toLocaleDateString()
+                        : 'Not specified'
+                      }
+                    </td>
+                    <td className="p-3 text-sm text-medical-text-muted max-w-xs">
+                      <div className="truncate" title={result.notes || ''}>
+                        {result.notes || '-'}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

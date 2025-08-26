@@ -234,9 +234,9 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
                         <i className={`fas ${isAdministered ? 'fa-check' : 'fa-clock'} mr-1`}></i>
                         {isAdministered ? 'Administered' : 'Pending'}
                       </span>
-                      {isAdministered && successfulAdmin && (
+                      {isAdministered && successfulAdmin && successfulAdmin.administeredAt && (
                         <p className="text-xs text-medical-text-muted mt-1">
-                          {successfulAdmin.administeredAt?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(successfulAdmin.administeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       )}
                     </div>

@@ -68,7 +68,7 @@ export default function Dashboard() {
                 className="w-8 h-8 bg-medical-secondary rounded-full flex items-center justify-center hover:bg-medical-secondary/90 transition-colors"
                 data-testid="button-profile"
               >
-                <i className="fas fa-user text-white text-sm"></i>
+                <i className="fas fa-cog text-white text-sm"></i>
               </button>
             </div>
           </div>

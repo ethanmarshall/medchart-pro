@@ -22,6 +22,22 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
     status: 'Stable'
   });
   
+  // Generate random 12-digit ID
+  const generatePatientId = () => {
+    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  };
+  
+  // Handle tab switching
+  const handleTabSwitch = (tab: 'medicines' | 'patients') => {
+    setActiveTab(tab);
+    if (tab === 'patients') {
+      setNewPatient(prev => ({
+        ...prev,
+        id: generatePatientId()
+      }));
+    }
+  };
+  
   const queryClient = useQueryClient();
   
   // Get existing medicines and patients
@@ -120,7 +136,7 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
         <div className="border-b border-medical-border">
           <div className="flex">
             <button
-              onClick={() => setActiveTab('medicines')}
+              onClick={() => handleTabSwitch('medicines')}
               className={`flex-1 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'medicines'
                   ? 'border-medical-primary text-medical-primary bg-medical-primary/5'
@@ -131,7 +147,7 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
               <i className="fas fa-pills mr-2"></i>Medicines ({medicines.length})
             </button>
             <button
-              onClick={() => setActiveTab('patients')}
+              onClick={() => handleTabSwitch('patients')}
               className={`flex-1 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'patients'
                   ? 'border-medical-primary text-medical-primary bg-medical-primary/5'

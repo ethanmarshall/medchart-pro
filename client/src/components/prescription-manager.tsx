@@ -10,11 +10,12 @@ interface PrescriptionManagerProps {
 
 export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [dosage, setDosage] = useState("");
   const [periodicity, setPeriodicity] = useState("");
+  const [duration, setDuration] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
@@ -35,11 +36,12 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   });
 
   const addPrescriptionMutation = useMutation({
-    mutationFn: async ({ medicineId, dosage, periodicity, pin }: { medicineId: string, dosage: string, periodicity: string, pin: string }) => {
+    mutationFn: async ({ medicineId, dosage, periodicity, duration, pin }: { medicineId: string, dosage: string, periodicity: string, duration: string, pin: string }) => {
       const response = await apiRequest('POST', `/api/patients/${patient.id}/prescriptions`, {
         medicineId,
         dosage,
         periodicity,
+        duration,
         pin
       });
       return response.json();
@@ -50,6 +52,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       setSelectedMedicine(null);
       setDosage("");
       setPeriodicity("");
+      setDuration("");
       setPin("");
       setError("");
     },
@@ -58,6 +61,35 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
         setError("Invalid PIN code");
       } else {
         setError("Failed to add prescription");
+      }
+    },
+  });
+
+  const updatePrescriptionMutation = useMutation({
+    mutationFn: async ({ prescriptionId, dosage, periodicity, duration, pin }: { prescriptionId: string, dosage: string, periodicity: string, duration: string, pin: string }) => {
+      const response = await apiRequest('PATCH', `/api/patients/${patient.id}/prescriptions/${prescriptionId}`, {
+        dosage,
+        periodicity,
+        duration,
+        pin
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient.id, 'prescriptions'] });
+      setShowEditModal(false);
+      setSelectedPrescription(null);
+      setDosage("");
+      setPeriodicity("");
+      setDuration("");
+      setPin("");
+      setError("");
+    },
+    onError: (error: any) => {
+      if (error.message.includes("401")) {
+        setError("Invalid PIN code");
+      } else {
+        setError("Failed to update prescription");
       }
     },
   });
@@ -71,8 +103,11 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients', patient.id, 'prescriptions'] });
-      setShowRemoveModal(false);
+      setShowEditModal(false);
       setSelectedPrescription(null);
+      setDosage("");
+      setPeriodicity("");
+      setDuration("");
       setPin("");
       setError("");
     },
@@ -86,11 +121,19 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   });
 
   const handleAddPrescription = () => {
-    if (!selectedMedicine || !dosage || !periodicity || !pin) {
+    if (!selectedMedicine || !dosage || !periodicity || !duration || !pin) {
       setError("Please fill in all fields");
       return;
     }
-    addPrescriptionMutation.mutate({ medicineId: selectedMedicine.id, dosage, periodicity, pin });
+    addPrescriptionMutation.mutate({ medicineId: selectedMedicine.id, dosage, periodicity, duration, pin });
+  };
+
+  const handleUpdatePrescription = () => {
+    if (!selectedPrescription || !dosage || !periodicity || !duration || !pin) {
+      setError("Please fill in all fields");
+      return;
+    }
+    updatePrescriptionMutation.mutate({ prescriptionId: selectedPrescription.id, dosage, periodicity, duration, pin });
   };
 
   const handleRemovePrescription = () => {
@@ -99,6 +142,14 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       return;
     }
     removePrescriptionMutation.mutate({ prescriptionId: selectedPrescription.id, pin });
+  };
+
+  const handleEditClick = (prescription: any) => {
+    setSelectedPrescription(prescription);
+    setDosage(prescription.dosage || "");
+    setPeriodicity(prescription.periodicity || "");
+    setDuration(prescription.duration || "");
+    setShowEditModal(true);
   };
 
   const prescribedMedicines = prescriptions.map(p => {
@@ -154,6 +205,11 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   <p className="text-sm text-medical-text-secondary">
                     <strong>Frequency:</strong> {prescription.periodicity}
                   </p>
+                  {prescription.duration && (
+                    <p className="text-sm text-medical-text-secondary">
+                      <strong>Duration:</strong> {prescription.duration}
+                    </p>
+                  )}
                   <p className="text-xs text-medical-text-muted font-mono">
                     ID: {prescription.medicineId}
                   </p>
@@ -173,14 +229,11 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  setSelectedPrescription(prescription);
-                  setShowRemoveModal(true);
-                }}
-                className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                data-testid={`button-remove-${prescription.id}`}
+                onClick={() => handleEditClick(prescription)}
+                className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                data-testid={`button-edit-${prescription.id}`}
               >
-                <i className="fas fa-trash mr-1"></i>Remove
+                <i className="fas fa-edit mr-1"></i>Edit
               </button>
             </div>
           ))
@@ -264,6 +317,34 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
 
               <div>
                 <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                  Duration
+                </label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                  data-testid="select-duration"
+                >
+                  <option value="">Select duration...</option>
+                  <option value="1 day">1 day</option>
+                  <option value="3 days">3 days</option>
+                  <option value="5 days">5 days</option>
+                  <option value="7 days">7 days</option>
+                  <option value="10 days">10 days</option>
+                  <option value="14 days">14 days</option>
+                  <option value="2 weeks">2 weeks</option>
+                  <option value="3 weeks">3 weeks</option>
+                  <option value="1 month">1 month</option>
+                  <option value="2 months">2 months</option>
+                  <option value="3 months">3 months</option>
+                  <option value="6 months">6 months</option>
+                  <option value="As needed">As needed</option>
+                  <option value="Ongoing">Ongoing</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-medical-text-primary mb-2">
                   PIN Code
                 </label>
                 <input
@@ -291,6 +372,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   setSelectedMedicine(null);
                   setDosage("");
                   setPeriodicity("");
+                  setDuration("");
                   setPin("");
                   setError("");
                 }}
@@ -316,8 +398,159 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
         </div>
       )}
 
-      {/* Remove Prescription Modal */}
-      {showRemoveModal && selectedPrescription && (
+      {/* Edit Prescription Modal */}
+      {showEditModal && selectedPrescription && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl border border-medical-border p-6 max-w-md mx-4 w-full">
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i className="fas fa-edit text-blue-600 text-xl"></i>
+              </div>
+              <h3 className="text-lg font-semibold text-medical-text-primary">Edit Prescription</h3>
+              <p className="text-sm text-medical-text-secondary mt-1">
+                {selectedPrescription.medicine?.name}
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    Dosage
+                  </label>
+                  <input
+                    type="text"
+                    value={dosage}
+                    onChange={(e) => setDosage(e.target.value)}
+                    placeholder="e.g., 10mg, 2 tablets"
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="input-edit-dosage"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    Frequency
+                  </label>
+                  <select
+                    value={periodicity}
+                    onChange={(e) => setPeriodicity(e.target.value)}
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="select-edit-periodicity"
+                  >
+                    <option value="">Select frequency...</option>
+                    <option value="Once daily">Once daily</option>
+                    <option value="Twice daily">Twice daily</option>
+                    <option value="Three times daily">Three times daily</option>
+                    <option value="Four times daily">Four times daily</option>
+                    <option value="Every 2 hours">Every 2 hours</option>
+                    <option value="Every 4 hours">Every 4 hours</option>
+                    <option value="Every 6 hours">Every 6 hours</option>
+                    <option value="Every 8 hours">Every 8 hours</option>
+                    <option value="Every 12 hours">Every 12 hours</option>
+                    <option value="As needed">As needed</option>
+                    <option value="Every 4 hours as needed">Every 4 hours as needed</option>
+                    <option value="Every 6 hours as needed">Every 6 hours as needed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                  Duration
+                </label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                  data-testid="select-edit-duration"
+                >
+                  <option value="">Select duration...</option>
+                  <option value="1 day">1 day</option>
+                  <option value="3 days">3 days</option>
+                  <option value="5 days">5 days</option>
+                  <option value="7 days">7 days</option>
+                  <option value="10 days">10 days</option>
+                  <option value="14 days">14 days</option>
+                  <option value="2 weeks">2 weeks</option>
+                  <option value="3 weeks">3 weeks</option>
+                  <option value="1 month">1 month</option>
+                  <option value="2 months">2 months</option>
+                  <option value="3 months">3 months</option>
+                  <option value="6 months">6 months</option>
+                  <option value="As needed">As needed</option>
+                  <option value="Ongoing">Ongoing</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                  PIN Code
+                </label>
+                <input
+                  type="password"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="Enter 4-digit PIN"
+                  className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary text-center tracking-widest"
+                  maxLength={4}
+                  data-testid="input-edit-pin"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-600 text-sm font-medium">{error}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedPrescription(null);
+                  setDosage("");
+                  setPeriodicity("");
+                  setDuration("");
+                  setPin("");
+                  setError("");
+                }}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemovePrescription}
+                disabled={removePrescriptionMutation.isPending}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                data-testid="button-remove-from-edit"
+              >
+                {removePrescriptionMutation.isPending ? (
+                  <><i className="fas fa-spinner fa-spin mr-1"></i>Remove</>
+                ) : (
+                  <><i className="fas fa-trash mr-1"></i>Remove</>
+                )}
+              </button>
+              <button
+                onClick={handleUpdatePrescription}
+                disabled={updatePrescriptionMutation.isPending}
+                className="flex-1 px-4 py-2 bg-medical-primary text-white rounded-lg hover:bg-medical-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                data-testid="button-confirm-edit"
+              >
+                {updatePrescriptionMutation.isPending ? (
+                  <><i className="fas fa-spinner fa-spin mr-2"></i>Updating...</>
+                ) : (
+                  <><i className="fas fa-save mr-2"></i>Update Prescription</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Prescription Modal - This is now only called from Edit modal */}
+      {false && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl border border-medical-border p-6 max-w-md mx-4 w-full">
             <div className="text-center mb-4">

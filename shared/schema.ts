@@ -41,6 +41,7 @@ export const prescriptions = pgTable("prescriptions", {
   medicineId: varchar("medicine_id").notNull().references(() => medicines.id),
   dosage: varchar("dosage").notNull(), // e.g., "10mg", "2 tablets", "5ml"
   periodicity: varchar("periodicity").notNull(), // e.g., "Every 4 hours", "Twice daily", "As needed"
+  duration: varchar("duration"), // e.g., "5 days", "2 weeks", "1 month", "Ongoing"
 });
 
 export const administrations = pgTable("administrations", {

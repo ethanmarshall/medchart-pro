@@ -139,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add prescription (requires PIN validation)
   app.post("/api/patients/:patientId/prescriptions", async (req, res) => {
     try {
-      const { medicineId, dosage, periodicity, pin } = req.body;
+      const { medicineId, dosage, periodicity, duration, pin } = req.body;
       
       // Validate PIN
       if (pin !== "1234") {
@@ -150,7 +150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientId: req.params.patientId,
         medicineId,
         dosage,
-        periodicity
+        periodicity,
+        duration
       });
       
       const prescription = await storage.createPrescription(validatedData);
@@ -173,6 +174,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid prescription data", errors: error.errors });
       }
       console.error('Error adding prescription:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update prescription (requires PIN validation)
+  app.patch("/api/patients/:patientId/prescriptions/:prescriptionId", async (req, res) => {
+    try {
+      const { dosage, periodicity, duration, pin } = req.body;
+      
+      // Validate PIN
+      if (pin !== "1234") {
+        return res.status(401).json({ message: "Invalid PIN code" });
+      }
+      
+      const updates = { dosage, periodicity, duration };
+      const updatedPrescription = await storage.updatePrescription(req.params.prescriptionId, updates);
+      
+      if (!updatedPrescription) {
+        return res.status(404).json({ message: "Prescription not found" });
+      }
+      
+      // Create audit log
+      await storage.createAuditLog({
+        entityType: 'prescription',
+        entityId: req.params.prescriptionId,
+        action: 'update',
+        changes: {
+          patient_id: req.params.patientId,
+          prescription_id: req.params.prescriptionId,
+          updates: updates,
+          action: 'prescription_updated'
+        } as any
+      });
+      
+      res.json(updatedPrescription);
+    } catch (error) {
+      console.error('Error updating prescription:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

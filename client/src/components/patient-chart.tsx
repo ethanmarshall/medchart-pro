@@ -145,7 +145,11 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
             </div>
             
             {/* Patient Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-6">
+              <div className="bg-slate-50 p-3 rounded-lg">
+                <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide">Patient ID</p>
+                <p className="font-mono font-semibold text-medical-text-primary" data-testid="text-patient-id">{patient.id}</p>
+              </div>
               <div className="bg-slate-50 p-3 rounded-lg">
                 <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide">MRN</p>
                 <p className="font-mono font-semibold text-medical-text-primary" data-testid="text-patient-mrn">{patient.mrn}</p>

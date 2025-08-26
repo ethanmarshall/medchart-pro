@@ -9,10 +9,20 @@ interface DatabaseManagementProps {
 }
 
 export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps) {
+  // Generate random 12-digit patient ID
+  const generatePatientId = () => {
+    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  };
+  
+  // Generate random 8-digit medicine ID
+  const generateMedicineId = () => {
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+  };
+
   const [activeTab, setActiveTab] = useState<'medicines' | 'patients'>('medicines');
-  const [newMedicine, setNewMedicine] = useState({ id: '', name: '' });
+  const [newMedicine, setNewMedicine] = useState({ id: generateMedicineId(), name: '' });
   const [newPatient, setNewPatient] = useState({
-    id: '',
+    id: generatePatientId(),
     name: '',
     dob: '',
     age: 0,
@@ -22,11 +32,6 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
     status: 'Stable'
   });
   
-  // Generate random 12-digit ID
-  const generatePatientId = () => {
-    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
-  };
-  
   // Handle tab switching
   const handleTabSwitch = (tab: 'medicines' | 'patients') => {
     setActiveTab(tab);
@@ -34,6 +39,11 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
       setNewPatient(prev => ({
         ...prev,
         id: generatePatientId()
+      }));
+    } else if (tab === 'medicines') {
+      setNewMedicine(prev => ({
+        ...prev,
+        id: generateMedicineId()
       }));
     }
   };
@@ -56,7 +66,7 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/medicines'] });
-      setNewMedicine({ id: '', name: '' });
+      setNewMedicine({ id: generateMedicineId(), name: '' });
     },
   });
 
@@ -68,7 +78,7 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       setNewPatient({
-        id: '',
+        id: generatePatientId(),
         name: '',
         dob: '',
         age: 0,
@@ -177,9 +187,9 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
                     <input
                       type="text"
                       value={newMedicine.id}
-                      onChange={(e) => setNewMedicine(prev => ({ ...prev, id: e.target.value }))}
-                      placeholder="e.g., 123456789"
-                      className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                      readOnly
+                      placeholder="Auto-generated ID"
+                      className="w-full p-3 border border-medical-border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                       data-testid="input-medicine-id"
                     />
                   </div>
@@ -245,9 +255,9 @@ export function DatabaseManagement({ isOpen, onClose }: DatabaseManagementProps)
                     <input
                       type="text"
                       value={newPatient.id}
-                      onChange={(e) => setNewPatient(prev => ({ ...prev, id: e.target.value }))}
-                      placeholder="e.g., 112233445566"
-                      className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                      readOnly
+                      placeholder="Auto-generated ID"
+                      className="w-full p-3 border border-medical-border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                       data-testid="input-patient-id"
                     />
                   </div>

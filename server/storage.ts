@@ -139,29 +139,29 @@ const initialPatientsData = new Map<string, Patient>([
 ]);
 
 const medicinesData = new Map<string, Medicine>([
-  ['319084', { id: '319084', name: 'Acetaminophen' }],
-  ['369402', { id: '369402', name: 'Colace/Docusate Sodium' }],
-  ['6843902', { id: '6843902', name: 'Dermoplast Spray' }],
-  ['0613444', { id: '0613444', name: 'Dulcolax' }],
-  ['195673', { id: '195673', name: 'Energix/Hepatitis (for mom)' }],
+  ['31908432', { id: '31908432', name: 'Acetaminophen' }],
+  ['36940245', { id: '36940245', name: 'Colace/Docusate Sodium' }],
+  ['68439028', { id: '68439028', name: 'Dermoplast Spray' }],
+  ['06134447', { id: '06134447', name: 'Dulcolax' }],
+  ['19567398', { id: '19567398', name: 'Energix/Hepatitis (for mom)' }],
   ['95283134', { id: '95283134', name: 'Ephedrine' }],
-  ['859672', { id: '859672', name: 'Fentanyl' }],
-  ['3576934', { id: '3576934', name: 'Ibuprofen/Motrin' }],
-  ['6032924', { id: '6032924', name: 'Toradol' }],
-  ['09509828942', { id: '09509828942', name: 'Morphine' }],
-  ['2094434849303', { id: '2094434849303', name: 'Labetalol' }],
+  ['85967245', { id: '85967245', name: 'Fentanyl' }],
+  ['35769341', { id: '35769341', name: 'Ibuprofen/Motrin' }],
+  ['60329247', { id: '60329247', name: 'Toradol' }],
+  ['09509828', { id: '09509828', name: 'Morphine' }],
+  ['20944348', { id: '20944348', name: 'Labetalol' }],
 ]);
 
 const prescriptionsData = new Map<string, Prescription[]>([
   ['112233445566', [
-    { id: '1', patientId: '112233445566', medicineId: '3576934', dosage: '200mg', periodicity: 'Every 6 hours' },
+    { id: '1', patientId: '112233445566', medicineId: '35769341', dosage: '200mg', periodicity: 'Every 6 hours' },
     { id: '2', patientId: '112233445566', medicineId: '95283134', dosage: '25mg', periodicity: 'Once daily' },
-    { id: '3', patientId: '112233445566', medicineId: '6032924', dosage: '30mg', periodicity: 'Every 8 hours as needed' },
+    { id: '3', patientId: '112233445566', medicineId: '60329247', dosage: '30mg', periodicity: 'Every 8 hours as needed' },
   ]],
   ['223344556677', [
-    { id: '4', patientId: '223344556677', medicineId: '09509828942', dosage: '1mg', periodicity: 'Every 4 hours as needed' },
-    { id: '5', patientId: '223344556677', medicineId: '319084', dosage: '500mg', periodicity: 'Every 6 hours' },
-    { id: '6', patientId: '223344556677', medicineId: '2094434849303', dosage: '5mg', periodicity: 'Twice daily' },
+    { id: '4', patientId: '223344556677', medicineId: '09509828', dosage: '1mg', periodicity: 'Every 4 hours as needed' },
+    { id: '5', patientId: '223344556677', medicineId: '31908432', dosage: '500mg', periodicity: 'Every 6 hours' },
+    { id: '6', patientId: '223344556677', medicineId: '20944348', dosage: '5mg', periodicity: 'Twice daily' },
   ]]
 ]);
 

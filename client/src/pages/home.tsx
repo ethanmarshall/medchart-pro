@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { LabOrder } from "@/components/lab-order";
+import { PatientScanner } from "@/components/patient-scanner";
 import { PatientForm } from "@/components/patient-form";
 import { PatientChart } from "@/components/patient-chart";
 import { DatabaseManagement } from "@/components/database-management";
@@ -8,17 +9,22 @@ import { type Patient } from "@shared/schema";
 
 export default function Home() {
   const [currentPatient, setCurrentPatient] = useState<Patient | null>(null);
-  const [activeTab, setActiveTab] = useState<'labs' | 'add'>('labs');
+  const [activeTab, setActiveTab] = useState<'scan' | 'add'>('scan');
   const [showDbManagement, setShowDbManagement] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState("");
+  const [showLabOrder, setShowLabOrder] = useState(false);
+
+  const handlePatientFound = (patient: Patient) => {
+    setCurrentPatient(patient);
+  };
 
   const handleOrderComplete = () => {
-    // Keep user on labs tab after completing order
+    setShowLabOrder(false);
   };
 
   const handlePatientAdded = () => {
-    setActiveTab('labs');
+    setActiveTab('scan');
   };
 
   const handleClearPatient = () => {
@@ -99,7 +105,7 @@ export default function Home() {
             <h3 className="text-lg font-semibold text-medical-text-primary text-center mb-2">Order Labs</h3>
             <p className="text-medical-text-muted text-center text-sm mb-4">Generate laboratory test results for patients</p>
             <button 
-              onClick={() => setActiveTab('labs')}
+              onClick={() => setShowLabOrder(true)}
               className="w-full bg-medical-primary hover:bg-teal-800 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
               data-testid="button-order-labs"
             >
@@ -142,15 +148,15 @@ export default function Home() {
           <div className="border-b border-medical-border">
             <nav className="flex justify-center" aria-label="Tabs">
               <button 
-                onClick={() => setActiveTab('labs')}
+                onClick={() => setActiveTab('scan')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === 'labs' 
+                  activeTab === 'scan' 
                     ? 'border-medical-primary text-medical-primary' 
                     : 'border-transparent text-medical-text-muted hover:text-medical-text-primary hover:border-gray-300'
                 }`}
-                data-testid="tab-labs"
+                data-testid="tab-scan"
               >
-                <i className="fas fa-vial mr-2"></i>Order Labs
+                <i className="fas fa-qrcode mr-2"></i>Scan Patient
               </button>
               <button 
                 onClick={() => setActiveTab('add')}
@@ -168,8 +174,8 @@ export default function Home() {
 
           {/* Tab Content */}
           <div className="p-8">
-            {activeTab === 'labs' ? (
-              <LabOrder onOrderComplete={handleOrderComplete} />
+            {activeTab === 'scan' ? (
+              <PatientScanner onPatientFound={handlePatientFound} />
             ) : (
               <PatientForm onPatientAdded={handlePatientAdded} />
             )}
@@ -228,6 +234,29 @@ export default function Home() {
         isOpen={showDbManagement} 
         onClose={handleCloseDbManagement} 
       />
+
+      {/* Lab Order Modal */}
+      {showLabOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-medical-border max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-medical-border p-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-medical-text-primary">
+                <i className="fas fa-vial mr-2"></i>Order Laboratory Tests
+              </h2>
+              <button
+                onClick={() => setShowLabOrder(false)}
+                className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+                data-testid="button-close-lab-order"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="p-6">
+              <LabOrder onOrderComplete={handleOrderComplete} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

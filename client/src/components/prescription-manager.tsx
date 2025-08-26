@@ -16,6 +16,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   const [dosage, setDosage] = useState("");
   const [periodicity, setPeriodicity] = useState("");
   const [duration, setDuration] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
@@ -36,12 +38,14 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   });
 
   const addPrescriptionMutation = useMutation({
-    mutationFn: async ({ medicineId, dosage, periodicity, duration, pin }: { medicineId: string, dosage: string, periodicity: string, duration: string, pin: string }) => {
+    mutationFn: async ({ medicineId, dosage, periodicity, duration, startDate, endDate, pin }: { medicineId: string, dosage: string, periodicity: string, duration: string, startDate: string, endDate: string, pin: string }) => {
       const response = await apiRequest('POST', `/api/patients/${patient.id}/prescriptions`, {
         medicineId,
         dosage,
         periodicity,
         duration,
+        startDate,
+        endDate,
         pin
       });
       return response.json();
@@ -53,6 +57,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       setDosage("");
       setPeriodicity("");
       setDuration("");
+      setStartDate("");
+      setEndDate("");
       setPin("");
       setError("");
     },
@@ -66,11 +72,13 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   });
 
   const updatePrescriptionMutation = useMutation({
-    mutationFn: async ({ prescriptionId, dosage, periodicity, duration, pin }: { prescriptionId: string, dosage: string, periodicity: string, duration: string, pin: string }) => {
+    mutationFn: async ({ prescriptionId, dosage, periodicity, duration, startDate, endDate, pin }: { prescriptionId: string, dosage: string, periodicity: string, duration: string, startDate: string, endDate: string, pin: string }) => {
       const response = await apiRequest('PATCH', `/api/patients/${patient.id}/prescriptions/${prescriptionId}`, {
         dosage,
         periodicity,
         duration,
+        startDate,
+        endDate,
         pin
       });
       return response.json();
@@ -82,6 +90,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       setDosage("");
       setPeriodicity("");
       setDuration("");
+      setStartDate("");
+      setEndDate("");
       setPin("");
       setError("");
     },
@@ -108,6 +118,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       setDosage("");
       setPeriodicity("");
       setDuration("");
+      setStartDate("");
+      setEndDate("");
       setPin("");
       setError("");
     },
@@ -125,7 +137,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       setError("Please fill in all fields");
       return;
     }
-    addPrescriptionMutation.mutate({ medicineId: selectedMedicine.id, dosage, periodicity, duration, pin });
+    addPrescriptionMutation.mutate({ medicineId: selectedMedicine.id, dosage, periodicity, duration, startDate, endDate, pin });
   };
 
   const handleUpdatePrescription = () => {
@@ -133,7 +145,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
       setError("Please fill in all fields");
       return;
     }
-    updatePrescriptionMutation.mutate({ prescriptionId: selectedPrescription.id, dosage, periodicity, duration, pin });
+    updatePrescriptionMutation.mutate({ prescriptionId: selectedPrescription.id, dosage, periodicity, duration, startDate, endDate, pin });
   };
 
   const handleRemovePrescription = () => {
@@ -149,6 +161,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
     setDosage(prescription.dosage || "");
     setPeriodicity(prescription.periodicity || "");
     setDuration(prescription.duration || "");
+    setStartDate(prescription.startDate ? new Date(prescription.startDate).toISOString().split('T')[0] : "");
+    setEndDate(prescription.endDate ? new Date(prescription.endDate).toISOString().split('T')[0] : "");
     setShowEditModal(true);
   };
 
@@ -208,6 +222,12 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   {prescription.duration && (
                     <p className="text-sm text-medical-text-secondary">
                       <strong>Duration:</strong> {prescription.duration}
+                    </p>
+                  )}
+                  {prescription.startDate && (
+                    <p className="text-sm text-medical-text-secondary">
+                      <strong>Start:</strong> {new Date(prescription.startDate).toLocaleDateString()}
+                      {prescription.endDate && ` - End: ${new Date(prescription.endDate).toLocaleDateString()}`}
                     </p>
                   )}
                   <p className="text-xs text-medical-text-muted font-mono">
@@ -343,6 +363,33 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 </select>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="input-start-date"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="input-end-date"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-medical-text-primary mb-2">
                   PIN Code
@@ -373,6 +420,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   setDosage("");
                   setPeriodicity("");
                   setDuration("");
+                  setStartDate("");
+                  setEndDate("");
                   setPin("");
                   setError("");
                 }}
@@ -482,6 +531,33 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 </select>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="input-edit-start-date"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="input-edit-end-date"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-medical-text-primary mb-2">
                   PIN Code
@@ -512,6 +588,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   setDosage("");
                   setPeriodicity("");
                   setDuration("");
+                  setStartDate("");
+                  setEndDate("");
                   setPin("");
                   setError("");
                 }}

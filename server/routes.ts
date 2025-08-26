@@ -139,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add prescription (requires PIN validation)
   app.post("/api/patients/:patientId/prescriptions", async (req, res) => {
     try {
-      const { medicineId, dosage, periodicity, duration, pin } = req.body;
+      const { medicineId, dosage, periodicity, duration, startDate, endDate, pin } = req.body;
       
       // Validate PIN
       if (pin !== "1234") {
@@ -151,7 +151,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         medicineId,
         dosage,
         periodicity,
-        duration
+        duration,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null
       });
       
       const prescription = await storage.createPrescription(validatedData);
@@ -181,14 +183,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update prescription (requires PIN validation)
   app.patch("/api/patients/:patientId/prescriptions/:prescriptionId", async (req, res) => {
     try {
-      const { dosage, periodicity, duration, pin } = req.body;
+      const { dosage, periodicity, duration, startDate, endDate, pin } = req.body;
       
       // Validate PIN
       if (pin !== "1234") {
         return res.status(401).json({ message: "Invalid PIN code" });
       }
       
-      const updates = { dosage, periodicity, duration };
+      const updates = { 
+        dosage, 
+        periodicity, 
+        duration,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null
+      };
       const updatedPrescription = await storage.updatePrescription(req.params.prescriptionId, updates);
       
       if (!updatedPrescription) {

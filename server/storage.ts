@@ -154,14 +154,14 @@ const medicinesData = new Map<string, Medicine>([
 
 const prescriptionsData = new Map<string, Prescription[]>([
   ['112233445566', [
-    { id: '1', patientId: '112233445566', medicineId: '35769341', dosage: '200mg', periodicity: 'Every 6 hours', duration: '7 days' },
-    { id: '2', patientId: '112233445566', medicineId: '95283134', dosage: '25mg', periodicity: 'Once daily', duration: '2 weeks' },
-    { id: '3', patientId: '112233445566', medicineId: '60329247', dosage: '30mg', periodicity: 'Every 8 hours as needed', duration: '5 days' },
+    { id: '1', patientId: '112233445566', medicineId: '35769341', dosage: '200mg', periodicity: 'Every 6 hours', duration: '7 days', startDate: new Date('2025-08-26'), endDate: new Date('2025-09-02') },
+    { id: '2', patientId: '112233445566', medicineId: '95283134', dosage: '25mg', periodicity: 'Once daily', duration: '2 weeks', startDate: new Date('2025-08-26'), endDate: new Date('2025-09-09') },
+    { id: '3', patientId: '112233445566', medicineId: '60329247', dosage: '30mg', periodicity: 'Every 8 hours as needed', duration: '5 days', startDate: new Date('2025-08-26'), endDate: new Date('2025-08-31') },
   ]],
   ['223344556677', [
-    { id: '4', patientId: '223344556677', medicineId: '09509828', dosage: '1mg', periodicity: 'Every 4 hours as needed', duration: 'As needed' },
-    { id: '5', patientId: '223344556677', medicineId: '31908432', dosage: '500mg', periodicity: 'Every 6 hours', duration: '10 days' },
-    { id: '6', patientId: '223344556677', medicineId: '20944348', dosage: '5mg', periodicity: 'Twice daily', duration: 'Ongoing' },
+    { id: '4', patientId: '223344556677', medicineId: '09509828', dosage: '1mg', periodicity: 'Every 4 hours as needed', duration: 'As needed', startDate: new Date('2025-08-20'), endDate: null },
+    { id: '5', patientId: '223344556677', medicineId: '31908432', dosage: '500mg', periodicity: 'Every 6 hours', duration: '10 days', startDate: new Date('2025-08-26'), endDate: new Date('2025-09-05') },
+    { id: '6', patientId: '223344556677', medicineId: '20944348', dosage: '5mg', periodicity: 'Twice daily', duration: 'Ongoing', startDate: new Date('2025-08-20'), endDate: null },
   ]]
 ]);
 
@@ -180,7 +180,7 @@ export interface IStorage {
   // Prescription methods
   getPrescriptionsByPatient(patientId: string): Promise<Prescription[]>;
   createPrescription(prescription: InsertPrescription): Promise<Prescription>;
-  updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration'>>): Promise<Prescription | undefined>;
+  updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration' | 'startDate' | 'endDate'>>): Promise<Prescription | undefined>;
   deletePrescription(prescriptionId: string): Promise<boolean>;
   
   // Administration methods
@@ -259,7 +259,7 @@ export class MemStorage implements IStorage {
     return prescription;
   }
 
-  async updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration'>>): Promise<Prescription | undefined> {
+  async updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration' | 'startDate' | 'endDate'>>): Promise<Prescription | undefined> {
     for (const [patientId, prescriptions] of this.prescriptions.entries()) {
       const index = prescriptions.findIndex(p => p.id === prescriptionId);
       if (index !== -1) {
@@ -419,7 +419,7 @@ export class DatabaseStorage implements IStorage {
     return prescription;
   }
 
-  async updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration'>>): Promise<Prescription | undefined> {
+  async updatePrescription(prescriptionId: string, updates: Partial<Pick<Prescription, 'dosage' | 'periodicity' | 'duration' | 'startDate' | 'endDate'>>): Promise<Prescription | undefined> {
     const [prescription] = await db
       .update(prescriptions)
       .set(updates)

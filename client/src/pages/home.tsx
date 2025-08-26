@@ -4,6 +4,7 @@ import { PatientScanner } from "@/components/patient-scanner";
 import { PatientForm } from "@/components/patient-form";
 import { PatientChart } from "@/components/patient-chart";
 import { DatabaseManagement } from "@/components/database-management";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { type Patient } from "@shared/schema";
 
 export default function Home() {
@@ -69,10 +70,7 @@ export default function Home() {
                   <i className="fas fa-tachometer-alt mr-2"></i>Dashboard
                 </button>
               </Link>
-              <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-medical-text-primary">Dr. Sarah Johnson</p>
-                <p className="text-xs text-medical-text-muted">Internal Medicine</p>
-              </div>
+              <ThemeToggle />
               <button 
                 onClick={handleProfileClick}
                 className="w-8 h-8 bg-medical-secondary rounded-full flex items-center justify-center hover:bg-medical-secondary/90 transition-colors"

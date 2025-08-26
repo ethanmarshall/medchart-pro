@@ -339,6 +339,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete patient (requires PIN validation)
+  app.delete("/api/patients/:id", async (req, res) => {
+    try {
+      const { pin } = req.body;
+      
+      // Validate PIN
+      if (pin !== "149500") {
+        return res.status(401).json({ message: "Invalid PIN code" });
+      }
+      
+      // Check if patient exists
+      const patient = await storage.getPatient(req.params.id);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      const deleted = await storage.deletePatient(req.params.id);
+      
+      if (!deleted) {
+        return res.status(500).json({ message: "Failed to delete patient" });
+      }
+      
+      // Create audit log
+      await storage.createAuditLog({
+        entityType: 'patient',
+        entityId: req.params.id,
+        action: 'delete',
+        changes: {
+          patient_id: req.params.id,
+          patient_name: patient.name,
+          action: 'patient_deleted'
+        } as any
+      });
+      
+      res.json({ message: "Patient deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

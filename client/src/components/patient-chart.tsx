@@ -16,6 +16,8 @@ interface PatientChartProps {
 export function PatientChart({ patient, onClear }: PatientChartProps) {
   const [activeTab, setActiveTab] = useState<'medication' | 'chart' | 'history' | 'audit' | 'prescriptions' | 'labresults'>('medication');
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePin, setDeletePin] = useState("");
   const [editData, setEditData] = useState({
     notes: patient.notes,
     status: patient.status,
@@ -65,6 +67,26 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
       window.location.reload();
     },
   });
+
+  const deletePatientMutation = useMutation({
+    mutationFn: async (pin: string) => {
+      const response = await apiRequest('DELETE', `/api/patients/${patient.id}`, { pin });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Update all relevant caches
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/audit'] });
+      setShowDeleteModal(false);
+      setDeletePin("");
+      
+      // Navigate back to home since patient is deleted
+      onClear();
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete patient:', error);
+    }
+  });
   
   const handleSaveEdit = () => {
     updatePatientMutation.mutate(editData);
@@ -83,6 +105,17 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
       doseWeight: patient.doseWeight
     });
     setIsEditing(false);
+  };
+
+  const handleDeletePatient = () => {
+    if (deletePin === "149500") {
+      deletePatientMutation.mutate(deletePin);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletePin("");
   };
   
   const getStatusColor = (status: string) => {
@@ -327,28 +360,37 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
               </div>
             </div>
             
-            {/* Save/Cancel Buttons */}
+            {/* Save/Cancel/Delete Buttons */}
             {isEditing && (
-              <div className="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-medical-border">
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-medical-border">
                 <button
-                  onClick={handleCancelEdit}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-                  data-testid="button-cancel-edit"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                  data-testid="button-delete-patient"
                 >
-                  Cancel
+                  <i className="fas fa-trash mr-2"></i>Delete Patient
                 </button>
-                <button
-                  onClick={handleSaveEdit}
-                  disabled={updatePatientMutation.isPending}
-                  className="px-6 py-2 bg-medical-primary text-white text-sm font-medium rounded-lg hover:bg-medical-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  data-testid="button-save-edit"
-                >
-                  {updatePatientMutation.isPending ? (
-                    <><i className="fas fa-spinner fa-spin mr-2"></i>Saving...</>
-                  ) : (
-                    <><i className="fas fa-save mr-2"></i>Save Changes</>
-                  )}
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                    data-testid="button-cancel-edit"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={updatePatientMutation.isPending}
+                    className="px-6 py-2 bg-medical-primary text-white text-sm font-medium rounded-lg hover:bg-medical-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    data-testid="button-save-edit"
+                  >
+                    {updatePatientMutation.isPending ? (
+                      <><i className="fas fa-spinner fa-spin mr-2"></i>Saving...</>
+                    ) : (
+                      <><i className="fas fa-save mr-2"></i>Save Changes</>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -538,6 +580,62 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
           />
         )}
       </div>
+
+      {/* Delete Patient PIN Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-medical-border max-w-md w-full">
+            <div className="p-6 border-b border-medical-border">
+              <h3 className="text-lg font-semibold text-red-600">
+                <i className="fas fa-exclamation-triangle mr-2"></i>Delete Patient
+              </h3>
+              <p className="text-medical-text-muted mt-2">
+                This action will permanently delete <strong>{patient.name}</strong> and all associated records. This cannot be undone.
+              </p>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <label htmlFor="delete-pin" className="block text-sm font-medium text-medical-text-secondary mb-2">
+                  Enter PIN code to confirm deletion:
+                </label>
+                <input
+                  id="delete-pin"
+                  type="password"
+                  value={deletePin}
+                  onChange={(e) => setDeletePin(e.target.value)}
+                  className="w-full px-3 py-2 border border-medical-border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  placeholder="Enter PIN"
+                  data-testid="input-delete-pin"
+                />
+                {deletePin && deletePin !== "149500" && (
+                  <p className="text-red-600 text-sm mt-1">Invalid PIN code</p>
+                )}
+              </div>
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={handleCloseDeleteModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                  data-testid="button-cancel-delete"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeletePatient}
+                  disabled={deletePin !== "149500" || deletePatientMutation.isPending}
+                  className="px-6 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  data-testid="button-confirm-delete"
+                >
+                  {deletePatientMutation.isPending ? (
+                    <><i className="fas fa-spinner fa-spin mr-2"></i>Deleting...</>
+                  ) : (
+                    <><i className="fas fa-trash mr-2"></i>Delete Patient</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

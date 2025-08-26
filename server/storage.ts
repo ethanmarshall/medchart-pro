@@ -194,6 +194,9 @@ export interface IStorage {
   // Lab result methods
   getLabResultsByPatient(patientId: string): Promise<LabResult[]>;
   createLabOrders(patientId: string, tests: string[], orderDate: string): Promise<number>;
+  
+  // Delete patient method
+  deletePatient(patientId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -315,6 +318,17 @@ export class MemStorage implements IStorage {
   async createLabOrders(patientId: string, tests: string[], orderDate: string): Promise<number> {
     // For MemStorage, return mock count
     return tests.length;
+  }
+
+  async deletePatient(patientId: string): Promise<boolean> {
+    const deleted = this.patients.delete(patientId);
+    if (deleted) {
+      // Also clean up related data
+      this.prescriptions.delete(patientId);
+      this.administrations.delete(patientId);
+      this.labResults.delete(patientId);
+    }
+    return deleted;
   }
 
   async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
@@ -610,6 +624,23 @@ export class DatabaseStorage implements IStorage {
       return notes[testCode] || 'Abnormal result - recommend follow-up';
     } else {
       return 'Critical result - immediate attention required';
+    }
+  }
+
+  async deletePatient(patientId: string): Promise<boolean> {
+    try {
+      // Delete related records first (foreign key constraints)
+      await db.delete(labResults).where(eq(labResults.patientId, patientId));
+      await db.delete(administrations).where(eq(administrations.patientId, patientId));
+      await db.delete(prescriptions).where(eq(prescriptions.patientId, patientId));
+      
+      // Delete the patient
+      const result = await db.delete(patients).where(eq(patients.id, patientId));
+      
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      throw error;
     }
   }
 }

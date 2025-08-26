@@ -156,6 +156,51 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
     removePrescriptionMutation.mutate({ prescriptionId: selectedPrescription.id, pin });
   };
 
+  // Function to calculate end date based on start date and duration
+  const calculateEndDate = (startDateStr: string, durationStr: string): string => {
+    if (!startDateStr || !durationStr || durationStr === "As needed" || durationStr === "Ongoing") {
+      return "";
+    }
+
+    const startDate = new Date(startDateStr);
+    let endDate = new Date(startDate);
+
+    // Parse duration and add to start date
+    const durationLower = durationStr.toLowerCase();
+    
+    if (durationLower.includes("day")) {
+      const days = parseInt(durationLower.match(/\d+/)?.[0] || "0");
+      endDate.setDate(startDate.getDate() + days - 1); // -1 because we include the start day
+    } else if (durationLower.includes("week")) {
+      const weeks = parseInt(durationLower.match(/\d+/)?.[0] || "0");
+      endDate.setDate(startDate.getDate() + (weeks * 7) - 1);
+    } else if (durationLower.includes("month")) {
+      const months = parseInt(durationLower.match(/\d+/)?.[0] || "0");
+      endDate.setMonth(startDate.getMonth() + months);
+      endDate.setDate(startDate.getDate() - 1);
+    }
+
+    return endDate.toISOString().split('T')[0];
+  };
+
+  // Handle start date change and auto-calculate end date
+  const handleStartDateChange = (newStartDate: string) => {
+    setStartDate(newStartDate);
+    if (newStartDate && duration) {
+      const calculatedEndDate = calculateEndDate(newStartDate, duration);
+      setEndDate(calculatedEndDate);
+    }
+  };
+
+  // Handle duration change and auto-calculate end date
+  const handleDurationChange = (newDuration: string) => {
+    setDuration(newDuration);
+    if (startDate && newDuration) {
+      const calculatedEndDate = calculateEndDate(startDate, newDuration);
+      setEndDate(calculatedEndDate);
+    }
+  };
+
   const handleEditClick = (prescription: any) => {
     setSelectedPrescription(prescription);
     setDosage(prescription.dosage || "");
@@ -341,7 +386,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 </label>
                 <select
                   value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
+                  onChange={(e) => handleDurationChange(e.target.value)}
                   className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
                   data-testid="select-duration"
                 >
@@ -371,7 +416,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
                     className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
                     data-testid="input-start-date"
                   />
@@ -386,6 +431,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
                     data-testid="input-end-date"
+                    placeholder="Auto-calculated from duration"
                   />
                 </div>
               </div>
@@ -509,7 +555,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 </label>
                 <select
                   value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
+                  onChange={(e) => handleDurationChange(e.target.value)}
                   className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
                   data-testid="select-edit-duration"
                 >
@@ -539,7 +585,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
                     className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
                     data-testid="input-edit-start-date"
                   />
@@ -554,6 +600,7 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
                     data-testid="input-edit-end-date"
+                    placeholder="Auto-calculated from duration"
                   />
                 </div>
               </div>

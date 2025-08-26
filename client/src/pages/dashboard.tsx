@@ -63,10 +63,6 @@ export default function Dashboard() {
                   <i className="fas fa-home mr-2"></i>Home
                 </button>
               </Link>
-              <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-medical-text-primary">Dr. Sarah Johnson</p>
-                <p className="text-xs text-medical-text-muted">Internal Medicine</p>
-              </div>
               <button 
                 onClick={handleProfileClick}
                 className="w-8 h-8 bg-medical-secondary rounded-full flex items-center justify-center hover:bg-medical-secondary/90 transition-colors"

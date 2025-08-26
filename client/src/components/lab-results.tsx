@@ -7,7 +7,7 @@ interface LabResultsProps {
 }
 
 export function LabResults({ patient }: LabResultsProps) {
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
   const { data: labResults = [], isLoading } = useQuery<LabResult[]>({
     queryKey: ['/api/patients', patient.id, 'lab-results'],
   });

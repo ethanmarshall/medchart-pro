@@ -90,9 +90,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const labResults = await storage.getLabResultsByPatient(req.params.patientId);
       // Sort by taken date descending (most recent first)
-      labResults.sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
+      if (labResults && labResults.length > 0) {
+        labResults.sort((a, b) => {
+          const aDate = a.takenAt ? new Date(a.takenAt).getTime() : 0;
+          const bDate = b.takenAt ? new Date(b.takenAt).getTime() : 0;
+          return bDate - aDate;
+        });
+      }
       res.json(labResults);
     } catch (error) {
+      console.error('Error fetching lab results:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -118,17 +125,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const auditLogs = await storage.getAuditLogsByEntity(entityType, entityId);
       res.json(auditLogs);
     } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Get lab results for a patient
-  app.get("/api/patients/:patientId/lab-results", async (req, res) => {
-    try {
-      const labResults = await storage.getLabResultsByPatient(req.params.patientId);
-      res.json(labResults);
-    } catch (error) {
-      console.error('Error fetching lab results:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

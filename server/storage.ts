@@ -1,7 +1,7 @@
-import { type Patient, type InsertPatient, type Medicine, type InsertMedicine, type Prescription, type InsertPrescription, type Administration, type InsertAdministration, type AuditLog, type InsertAuditLog } from "@shared/schema";
+import { type Patient, type InsertPatient, type Medicine, type InsertMedicine, type Prescription, type InsertPrescription, type Administration, type InsertAdministration, type AuditLog, type InsertAuditLog, type LabResult } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { patients, medicines, prescriptions, administrations, auditLogs } from "@shared/schema";
+import { patients, medicines, prescriptions, administrations, auditLogs, labResults } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 // Initial data for demonstration
@@ -502,7 +502,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLabResultsByPatient(patientId: string): Promise<LabResult[]> {
-    return await db.select().from(labResults).where(eq(labResults.patientId, patientId));
+    try {
+      console.log('Fetching lab results for patient:', patientId);
+      const results = await db.select().from(labResults).where(eq(labResults.patientId, patientId));
+      console.log('Found lab results:', results.length);
+      return results;
+    } catch (error) {
+      console.error('Error in getLabResultsByPatient:', error);
+      throw error;
+    }
   }
 }
 

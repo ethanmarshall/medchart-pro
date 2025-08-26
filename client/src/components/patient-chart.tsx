@@ -41,10 +41,15 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
       const response = await apiRequest('PATCH', `/api/patients/${patient.id}`, updates);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient.id] });
+    onSuccess: (updatedPatient) => {
+      // Update all relevant caches
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+      queryClient.setQueryData(['/api/patients', patient.id], updatedPatient);
+      queryClient.invalidateQueries({ queryKey: ['/api/audit'] });
       setIsEditing(false);
+      
+      // Force a refresh by reloading the page to ensure all data is updated
+      window.location.reload();
     },
   });
   

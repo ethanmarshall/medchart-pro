@@ -75,19 +75,15 @@ export function LabResults({ patient }: LabResultsProps) {
             .map((result) => (
               <div 
                 key={result.id} 
-                className="border border-medical-border rounded-lg p-4 hover:shadow-sm transition-shadow"
+                className="border border-medical-border rounded-lg p-4 hover:shadow-sm transition-shadow relative"
                 data-testid={`lab-result-${result.id}`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex-1 pr-20">
+                    <div className="mb-2">
                       <h4 className="font-medium text-medical-text-primary" data-testid={`test-name-${result.id}`}>
                         {result.testName}
                       </h4>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(result.status)}`}>
-                        <i className={`${getStatusIcon(result.status)} mr-1`}></i>
-                        {result.status.charAt(0).toUpperCase() + result.status.slice(1)}
-                      </span>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -113,6 +109,12 @@ export function LabResults({ patient }: LabResultsProps) {
                         </span>
                       </div>
                     </div>
+                  </div>
+                  <div className="absolute top-3 right-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(result.status)}`}>
+                      <i className={`${getStatusIcon(result.status)} mr-1`}></i>
+                      {result.status.charAt(0).toUpperCase() + result.status.slice(1)}
+                    </span>
                   </div>
                 </div>
               </div>

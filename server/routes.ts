@@ -114,15 +114,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/patients/:id", async (req, res) => {
     try {
       const updates = insertPatientSchema.partial().parse(req.body);
-      const patient = await storage.updatePatient(req.params.id, updates);
-      if (!patient) {
+      
+      // Get the original patient data for audit logging
+      const originalPatient = await storage.getPatient(req.params.id);
+      if (!originalPatient) {
         return res.status(404).json({ message: "Patient not found" });
       }
-      res.json(patient);
+      
+      const updatedPatient = await storage.updatePatient(req.params.id, updates);
+      
+      // Create audit log for the patient update
+      const changeDetails = {
+        updated_fields: Object.keys(updates),
+        changes: Object.keys(updates).reduce((acc, field) => {
+          acc[field] = {
+            from: (originalPatient as any)[field],
+            to: (updatedPatient as any)[field]
+          };
+          return acc;
+        }, {} as Record<string, any>)
+      };
+
+      await storage.createAuditLog({
+        entityType: 'patient',
+        entityId: req.params.id,
+        action: 'update',
+        changes: changeDetails
+      });
+      
+      res.json(updatedPatient);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid patient data", errors: error.errors });
       }
+      console.error('Error updating patient:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -19,7 +19,10 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
     provider: patient.provider,
     allergies: patient.allergies,
     codeStatus: patient.codeStatus,
-    isolation: patient.isolation
+    isolation: patient.isolation,
+    bed: patient.bed,
+    age: patient.age,
+    doseWeight: patient.doseWeight
   });
 
   // Get administrations and medicines for history tab
@@ -56,7 +59,10 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
       provider: patient.provider,
       allergies: patient.allergies,
       codeStatus: patient.codeStatus,
-      isolation: patient.isolation
+      isolation: patient.isolation,
+      bed: patient.bed,
+      age: patient.age,
+      doseWeight: patient.doseWeight
     });
     setIsEditing(false);
   };
@@ -178,7 +184,7 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
             </div>
             
             {/* Extended Patient Info - Editable */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div className="bg-slate-50 p-3 rounded-lg">
                 <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide mb-2">Provider</p>
                 {isEditing ? (
@@ -192,6 +198,56 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
                   />
                 ) : (
                   <p className="text-sm text-medical-text-primary" data-testid="text-patient-provider">{patient.provider}</p>
+                )}
+              </div>
+              
+              <div className="bg-slate-50 p-3 rounded-lg">
+                <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide mb-2">Bed</p>
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    value={editData.bed}
+                    onChange={(e) => setEditData({...editData, bed: e.target.value})}
+                    className="w-full p-2 border rounded text-sm"
+                    placeholder="Enter bed number"
+                    data-testid="input-bed"
+                  />
+                ) : (
+                  <p className="text-sm text-medical-text-primary font-mono" data-testid="text-patient-bed">{patient.bed}</p>
+                )}
+              </div>
+              
+              <div className="bg-slate-50 p-3 rounded-lg">
+                <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide mb-2">Age</p>
+                {isEditing ? (
+                  <input 
+                    type="number" 
+                    value={editData.age}
+                    onChange={(e) => setEditData({...editData, age: parseInt(e.target.value) || 0})}
+                    className="w-full p-2 border rounded text-sm"
+                    placeholder="Enter age"
+                    min="0"
+                    max="150"
+                    data-testid="input-age"
+                  />
+                ) : (
+                  <p className="text-sm text-medical-text-primary" data-testid="text-patient-age">{patient.age} years</p>
+                )}
+              </div>
+              
+              <div className="bg-slate-50 p-3 rounded-lg">
+                <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide mb-2">Weight</p>
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    value={editData.doseWeight}
+                    onChange={(e) => setEditData({...editData, doseWeight: e.target.value})}
+                    className="w-full p-2 border rounded text-sm"
+                    placeholder="Enter weight (e.g., 75 kg)"
+                    data-testid="input-weight"
+                  />
+                ) : (
+                  <p className="text-sm text-medical-text-primary" data-testid="text-patient-weight">{patient.doseWeight}</p>
                 )}
               </div>
               
@@ -233,7 +289,7 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
                 )}
               </div>
               
-              <div className="bg-slate-50 p-3 rounded-lg">
+              <div className="bg-slate-50 p-3 rounded-lg md:col-span-3">
                 <p className="text-xs font-medium text-medical-text-muted uppercase tracking-wide mb-2">Notes</p>
                 {isEditing ? (
                   <textarea 

@@ -17,6 +17,8 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
   const [log, setLog] = useState<LogEntry[]>([]);
   const medScannerRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateMedicine, setDuplicateMedicine] = useState<{medicine: Medicine, administration: Administration} | null>(null);
 
   useEffect(() => {
     medScannerRef.current?.focus();
@@ -51,6 +53,26 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
     const timestamp = new Date().toLocaleTimeString();
     setLog(prevLog => [{ message, type, timestamp }, ...prevLog]);
   };
+  
+  const handleContinueWithDuplicate = () => {
+    if (duplicateMedicine) {
+      const warningMessage = `WARNING: Duplicate administration of '${duplicateMedicine.medicine.name}' - Previously administered at ${new Date(duplicateMedicine.administration.administeredAt || '').toLocaleString()}`;
+      addLogEntry(warningMessage, 'warning');
+      createAdministrationMutation.mutate({
+        patientId: patient.id,
+        medicineId: duplicateMedicine.medicine.id,
+        status: 'warning',
+        message: warningMessage
+      });
+    }
+    setShowDuplicateWarning(false);
+    setDuplicateMedicine(null);
+  };
+  
+  const handleCancelDuplicate = () => {
+    setShowDuplicateWarning(false);
+    setDuplicateMedicine(null);
+  };
 
   const handleMedKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -80,19 +102,14 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
         });
       } else {
         // Check if medicine has been successfully administered before
-        const alreadyAdministered = administrations.some(
+        const existingAdmin = administrations.find(
           adm => adm.medicineId === medId && adm.status === 'success'
         );
         
-        if (alreadyAdministered) {
-          const warningMessage = `WARNING: '${medicine.name}' has already been administered.`;
-          addLogEntry(warningMessage, 'warning');
-          createAdministrationMutation.mutate({
-            patientId: patient.id,
-            medicineId: medId,
-            status: 'warning',
-            message: warningMessage
-          });
+        if (existingAdmin) {
+          // Show warning popup instead of immediately creating administration
+          setDuplicateMedicine({ medicine, administration: existingAdmin });
+          setShowDuplicateWarning(true);
         } else {
           const successMessage = `SUCCESS: Administered '${medicine.name}'.`;
           addLogEntry(successMessage, 'success');
@@ -281,6 +298,50 @@ export function MedicationAdmin({ patient }: MedicationAdminProps) {
           </p>
         </div>
       </div>
+
+      {/* Duplicate Medicine Warning Modal */}
+      {showDuplicateWarning && duplicateMedicine && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl border border-medical-border p-6 max-w-md mx-4">
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i className="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+              </div>
+              <h3 className="text-lg font-semibold text-medical-text-primary">Duplicate Administration Warning</h3>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-gray-800 mb-2">
+                <strong>{duplicateMedicine.medicine.name}</strong> has already been administered to this patient.
+              </p>
+              <p className="text-xs text-gray-600">
+                Previous administration: {new Date(duplicateMedicine.administration.administeredAt || '').toLocaleString()}
+              </p>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-6 text-center">
+              Do you want to continue with this duplicate administration?
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCancelDuplicate}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                data-testid="button-cancel-duplicate"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleContinueWithDuplicate}
+                className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+                data-testid="button-continue-duplicate"
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

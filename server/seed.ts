@@ -105,20 +105,20 @@ const initialPatients = [
 ];
 
 const initialMedicines = [
-  { id: '319084', name: 'Acetaminophen' },
+  { id: '31908432', name: 'Acetaminophen' },
   { id: '95283134', name: 'Ibuprofen' },
-  { id: '6032924', name: 'Amoxicillin' },
-  { id: '09509828942', name: 'Metformin' },
-  { id: '2094434849303', name: 'Lisinopril' }
+  { id: '60329247', name: 'Amoxicillin' },
+  { id: '09509828', name: 'Metformin' },
+  { id: '20944348', name: 'Lisinopril' }
 ];
 
 const initialPrescriptions = [
-  { id: '1', patientId: '112233445566', medicineId: '319084', dosage: '500mg', periodicity: 'Every 6 hours' },
+  { id: '1', patientId: '112233445566', medicineId: '31908432', dosage: '500mg', periodicity: 'Every 6 hours' },
   { id: '2', patientId: '112233445566', medicineId: '95283134', dosage: '25mg', periodicity: 'Once daily' },
-  { id: '3', patientId: '112233445566', medicineId: '6032924', dosage: '250mg', periodicity: 'Twice daily' },
-  { id: '4', patientId: '223344556677', medicineId: '09509828942', dosage: '500mg', periodicity: 'Twice daily' },
-  { id: '5', patientId: '223344556677', medicineId: '319084', dosage: '1000mg', periodicity: 'Once daily' },
-  { id: '6', patientId: '223344556677', medicineId: '2094434849303', dosage: '10mg', periodicity: 'Once daily' }
+  { id: '3', patientId: '112233445566', medicineId: '60329247', dosage: '250mg', periodicity: 'Twice daily' },
+  { id: '4', patientId: '223344556677', medicineId: '09509828', dosage: '500mg', periodicity: 'Twice daily' },
+  { id: '5', patientId: '223344556677', medicineId: '31908432', dosage: '1000mg', periodicity: 'Once daily' },
+  { id: '6', patientId: '223344556677', medicineId: '20944348', dosage: '10mg', periodicity: 'Once daily' }
 ];
 
 const initialLabResults = [

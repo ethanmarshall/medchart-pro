@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type Patient, type Administration, type Medicine, type Prescription } from "@shared/schema";
+import { type Patient, type Administration, type Medicine, type Prescription, type LabResult } from "@shared/schema";
 import { NextDoseCountdown } from "./next-dose-countdown";
 import { MedicationAdmin } from "./medication-admin";
 import { AuditLogComponent } from "./audit-log";
@@ -40,6 +40,11 @@ export function PatientChart({ patient, onClear }: PatientChartProps) {
   // Get prescriptions for countdown calculation
   const { data: prescriptions = [] } = useQuery<Prescription[]>({
     queryKey: ['/api/patients', patient.id, 'prescriptions'],
+  });
+
+  // Get lab results for lab data tab
+  const { data: labResults = [] } = useQuery<LabResult[]>({
+    queryKey: ['/api/patients', patient.id, 'lab-results'],
   });
   
   const queryClient = useQueryClient();

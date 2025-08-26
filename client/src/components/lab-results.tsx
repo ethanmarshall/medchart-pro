@@ -67,7 +67,11 @@ export function LabResults({ patient }: LabResultsProps) {
       ) : (
         <div className="space-y-4">
           {labResults
-            .sort((a, b) => new Date(b.collectedAt).getTime() - new Date(a.collectedAt).getTime())
+            .sort((a, b) => {
+              const aDate = a.takenAt ? new Date(a.takenAt).getTime() : 0;
+              const bDate = b.takenAt ? new Date(b.takenAt).getTime() : 0;
+              return bDate - aDate;
+            })
             .map((result) => (
               <div 
                 key={result.id} 
@@ -102,7 +106,10 @@ export function LabResults({ patient }: LabResultsProps) {
                       <div>
                         <span className="font-medium text-medical-text-secondary">Collected:</span>
                         <span className="ml-2 text-medical-text-primary" data-testid={`test-collected-${result.id}`}>
-                          {new Date(result.collectedAt).toLocaleDateString()} at {new Date(result.collectedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {result.takenAt 
+                            ? `${new Date(result.takenAt).toLocaleDateString()} at ${new Date(result.takenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                            : 'Not specified'
+                          }
                         </span>
                       </div>
                     </div>

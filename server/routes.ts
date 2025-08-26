@@ -85,6 +85,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get lab results for a patient
+  app.get("/api/patients/:patientId/lab-results", async (req, res) => {
+    try {
+      const labResults = await storage.getLabResultsByPatient(req.params.patientId);
+      // Sort by taken date descending (most recent first)
+      labResults.sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
+      res.json(labResults);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Record medication administration
   app.post("/api/administrations", async (req, res) => {
     try {

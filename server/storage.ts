@@ -200,12 +200,14 @@ export class MemStorage implements IStorage {
   private medicines: Map<string, Medicine>;
   private prescriptions: Map<string, Prescription[]>;
   private administrations: Map<string, Administration[]>;
+  private labResults: Map<string, LabResult[]>;
 
   constructor() {
     this.patients = new Map(initialPatientsData);
     this.medicines = new Map(medicinesData);
     this.prescriptions = new Map(prescriptionsData);
     this.administrations = new Map();
+    this.labResults = new Map();
   }
 
   async getPatient(id: string): Promise<Patient | undefined> {
@@ -300,6 +302,10 @@ export class MemStorage implements IStorage {
     this.administrations.set(administration.patientId, existing);
     
     return administration;
+  }
+
+  async getLabResultsByPatient(patientId: string): Promise<LabResult[]> {
+    return this.labResults.get(patientId) || [];
   }
 
   async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {

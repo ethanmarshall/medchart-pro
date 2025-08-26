@@ -122,50 +122,128 @@ const initialPrescriptions = [
 ];
 
 const initialLabResults = [
+  // Recent labs for Olivia Chen
   {
     patientId: '112233445566',
-    testName: 'Complete Blood Count (CBC)',
+    testName: 'Complete Blood Count - Hemoglobin',
+    testCode: 'CBC-HGB',
     value: '12.5',
     unit: 'g/dL',
-    referenceRange: '11.6-15.0',
+    referenceRange: '12.0-16.0 g/dL',
     status: 'normal',
-    collectedAt: new Date('2024-12-20T08:30:00Z')
+    takenAt: new Date('2025-08-25T08:00:00Z'),
+    resultedAt: new Date('2025-08-25T10:30:00Z'),
+    notes: 'Hemoglobin within normal limits'
   },
   {
     patientId: '112233445566',
-    testName: 'Glucose',
-    value: '185',
+    testName: 'Complete Blood Count - White Blood Cells',
+    testCode: 'CBC-WBC',
+    value: '7200',
+    unit: 'cells/μL',
+    referenceRange: '4500-11000 cells/μL',
+    status: 'normal',
+    takenAt: new Date('2025-08-25T08:00:00Z'),
+    resultedAt: new Date('2025-08-25T10:30:00Z'),
+    notes: null
+  },
+  {
+    patientId: '112233445566',
+    testName: 'Basic Metabolic Panel - Glucose',
+    testCode: 'BMP-GLU',
+    value: '95',
     unit: 'mg/dL',
-    referenceRange: '70-99',
-    status: 'high',
-    collectedAt: new Date('2024-12-20T08:30:00Z')
+    referenceRange: '70-100 mg/dL',
+    status: 'normal',
+    takenAt: new Date('2025-08-25T08:00:00Z'),
+    resultedAt: new Date('2025-08-25T09:45:00Z'),
+    notes: 'Fasting glucose normal'
   },
   {
     patientId: '112233445566',
-    testName: 'Creatinine',
+    testName: 'Basic Metabolic Panel - Creatinine',
+    testCode: 'BMP-CREAT',
     value: '0.9',
     unit: 'mg/dL',
-    referenceRange: '0.6-1.2',
+    referenceRange: '0.6-1.2 mg/dL',
     status: 'normal',
-    collectedAt: new Date('2024-12-19T14:15:00Z')
+    takenAt: new Date('2025-08-25T08:00:00Z'),
+    resultedAt: new Date('2025-08-25T09:45:00Z'),
+    notes: 'Kidney function normal'
   },
   {
-    patientId: '223344556677',
+    patientId: '112233445566',
     testName: 'Hemoglobin A1C',
-    value: '8.2',
+    testCode: 'HbA1c',
+    value: '5.8',
     unit: '%',
-    referenceRange: '<7.0',
-    status: 'high',
-    collectedAt: new Date('2024-12-18T10:00:00Z')
+    referenceRange: '<7.0%',
+    status: 'normal',
+    takenAt: new Date('2025-08-20T09:00:00Z'),
+    resultedAt: new Date('2025-08-21T14:00:00Z'),
+    notes: 'Good diabetic control'
+  },
+  
+  // Recent labs for Marcus Thompson
+  {
+    patientId: '223344556677',
+    testName: 'Lipid Panel - Total Cholesterol',
+    testCode: 'LIPID-CHOL',
+    value: '220',
+    unit: 'mg/dL',
+    referenceRange: '<200 mg/dL',
+    status: 'abnormal',
+    takenAt: new Date('2025-08-24T10:30:00Z'),
+    resultedAt: new Date('2025-08-24T15:00:00Z'),
+    notes: 'Elevated cholesterol, recommend dietary changes'
   },
   {
     patientId: '223344556677',
-    testName: 'Total Cholesterol',
-    value: '165',
+    testName: 'Lipid Panel - LDL Cholesterol',
+    testCode: 'LIPID-LDL',
+    value: '145',
     unit: 'mg/dL',
-    referenceRange: '<200',
+    referenceRange: '<100 mg/dL',
+    status: 'abnormal',
+    takenAt: new Date('2025-08-24T10:30:00Z'),
+    resultedAt: new Date('2025-08-24T15:00:00Z'),
+    notes: 'LDL elevated'
+  },
+  {
+    patientId: '223344556677',
+    testName: 'Lipid Panel - HDL Cholesterol',
+    testCode: 'LIPID-HDL',
+    value: '38',
+    unit: 'mg/dL',
+    referenceRange: '>40 mg/dL (M), >50 mg/dL (F)',
+    status: 'abnormal',
+    takenAt: new Date('2025-08-24T10:30:00Z'),
+    resultedAt: new Date('2025-08-24T15:00:00Z'),
+    notes: 'HDL low, consider exercise'
+  },
+  {
+    patientId: '223344556677',
+    testName: 'Thyroid Stimulating Hormone',
+    testCode: 'TSH',
+    value: '2.1',
+    unit: 'mIU/L',
+    referenceRange: '0.4-4.0 mIU/L',
     status: 'normal',
-    collectedAt: new Date('2024-12-18T10:00:00Z')
+    takenAt: new Date('2025-08-24T10:30:00Z'),
+    resultedAt: new Date('2025-08-24T16:30:00Z'),
+    notes: 'Thyroid function normal'
+  },
+  {
+    patientId: '223344556677',
+    testName: 'Prostate Specific Antigen',
+    testCode: 'PSA',
+    value: '1.8',
+    unit: 'ng/mL',
+    referenceRange: '<4.0 ng/mL',
+    status: 'normal',
+    takenAt: new Date('2025-08-22T08:00:00Z'),
+    resultedAt: new Date('2025-08-22T14:00:00Z'),
+    notes: 'Annual screening - normal'
   }
 ];
 

@@ -68,12 +68,15 @@ export const auditLogs = pgTable("audit_logs", {
 export const labResults = pgTable("lab_results", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   patientId: varchar("patient_id").notNull().references(() => patients.id),
-  testName: varchar("test_name").notNull(),
-  value: varchar("value").notNull(),
-  unit: varchar("unit"),
-  referenceRange: varchar("reference_range"),
-  status: varchar("status").notNull(), // 'normal', 'high', 'low', 'critical'
-  collectedAt: timestamp("collected_at").notNull(),
+  testName: varchar("test_name").notNull(), // e.g., "Complete Blood Count", "Basic Metabolic Panel"
+  testCode: varchar("test_code"), // e.g., "CBC", "BMP", "HbA1c"
+  value: varchar("value").notNull(), // the test result value
+  unit: varchar("unit"), // e.g., "mg/dL", "mmol/L", "%"
+  referenceRange: varchar("reference_range"), // normal range for this test
+  status: varchar("status").notNull(), // 'normal', 'abnormal', 'critical', 'pending'
+  takenAt: timestamp("taken_at").notNull(), // when the lab was collected
+  resultedAt: timestamp("resulted_at"), // when results were available
+  notes: text("notes"), // additional notes from lab
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 

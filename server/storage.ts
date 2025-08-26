@@ -154,14 +154,14 @@ const medicinesData = new Map<string, Medicine>([
 
 const prescriptionsData = new Map<string, Prescription[]>([
   ['112233445566', [
-    { id: '1', patientId: '112233445566', medicineId: '3576934' },
-    { id: '2', patientId: '112233445566', medicineId: '95283134' },
-    { id: '3', patientId: '112233445566', medicineId: '6032924' },
+    { id: '1', patientId: '112233445566', medicineId: '3576934', dosage: '200mg', periodicity: 'Every 6 hours' },
+    { id: '2', patientId: '112233445566', medicineId: '95283134', dosage: '25mg', periodicity: 'Once daily' },
+    { id: '3', patientId: '112233445566', medicineId: '6032924', dosage: '30mg', periodicity: 'Every 8 hours as needed' },
   ]],
   ['223344556677', [
-    { id: '4', patientId: '223344556677', medicineId: '09509828942' },
-    { id: '5', patientId: '223344556677', medicineId: '319084' },
-    { id: '6', patientId: '223344556677', medicineId: '2094434849303' },
+    { id: '4', patientId: '223344556677', medicineId: '09509828942', dosage: '1mg', periodicity: 'Every 4 hours as needed' },
+    { id: '5', patientId: '223344556677', medicineId: '319084', dosage: '500mg', periodicity: 'Every 6 hours' },
+    { id: '6', patientId: '223344556677', medicineId: '2094434849303', dosage: '5mg', periodicity: 'Twice daily' },
   ]]
 ]);
 

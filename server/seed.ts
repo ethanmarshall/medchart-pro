@@ -113,12 +113,12 @@ const initialMedicines = [
 ];
 
 const initialPrescriptions = [
-  { id: '1', patientId: '112233445566', medicineId: '319084' },
-  { id: '2', patientId: '112233445566', medicineId: '95283134' },
-  { id: '3', patientId: '112233445566', medicineId: '6032924' },
-  { id: '4', patientId: '223344556677', medicineId: '09509828942' },
-  { id: '5', patientId: '223344556677', medicineId: '319084' },
-  { id: '6', patientId: '223344556677', medicineId: '2094434849303' }
+  { id: '1', patientId: '112233445566', medicineId: '319084', dosage: '500mg', periodicity: 'Every 6 hours' },
+  { id: '2', patientId: '112233445566', medicineId: '95283134', dosage: '25mg', periodicity: 'Once daily' },
+  { id: '3', patientId: '112233445566', medicineId: '6032924', dosage: '250mg', periodicity: 'Twice daily' },
+  { id: '4', patientId: '223344556677', medicineId: '09509828942', dosage: '500mg', periodicity: 'Twice daily' },
+  { id: '5', patientId: '223344556677', medicineId: '319084', dosage: '1000mg', periodicity: 'Once daily' },
+  { id: '6', patientId: '223344556677', medicineId: '2094434849303', dosage: '10mg', periodicity: 'Once daily' }
 ];
 
 export async function seedDatabase() {

@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add prescription (requires PIN validation)
   app.post("/api/patients/:patientId/prescriptions", async (req, res) => {
     try {
-      const { medicineId, pin } = req.body;
+      const { medicineId, dosage, periodicity, pin } = req.body;
       
       // Validate PIN
       if (pin !== "1234") {
@@ -122,7 +122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = insertPrescriptionSchema.parse({
         patientId: req.params.patientId,
-        medicineId
+        medicineId,
+        dosage,
+        periodicity
       });
       
       const prescription = await storage.createPrescription(validatedData);

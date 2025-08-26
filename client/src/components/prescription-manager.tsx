@@ -12,6 +12,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [dosage, setDosage] = useState("");
+  const [periodicity, setPeriodicity] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
@@ -27,9 +29,11 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   });
 
   const addPrescriptionMutation = useMutation({
-    mutationFn: async ({ medicineId, pin }: { medicineId: string, pin: string }) => {
+    mutationFn: async ({ medicineId, dosage, periodicity, pin }: { medicineId: string, dosage: string, periodicity: string, pin: string }) => {
       const response = await apiRequest('POST', `/api/patients/${patient.id}/prescriptions`, {
         medicineId,
+        dosage,
+        periodicity,
         pin
       });
       return response.json();
@@ -37,6 +41,9 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients', patient.id, 'prescriptions'] });
       setShowAddModal(false);
+      setSelectedMedicine(null);
+      setDosage("");
+      setPeriodicity("");
       setPin("");
       setError("");
     },
@@ -73,11 +80,11 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
   });
 
   const handleAddPrescription = () => {
-    if (!selectedMedicine || !pin) {
-      setError("Please select a medicine and enter PIN");
+    if (!selectedMedicine || !dosage || !periodicity || !pin) {
+      setError("Please fill in all fields");
       return;
     }
-    addPrescriptionMutation.mutate({ medicineId: selectedMedicine.id, pin });
+    addPrescriptionMutation.mutate({ medicineId: selectedMedicine.id, dosage, periodicity, pin });
   };
 
   const handleRemovePrescription = () => {
@@ -135,6 +142,12 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                   <h4 className="font-medium text-medical-text-primary">
                     {prescription.medicine?.name}
                   </h4>
+                  <p className="text-sm text-medical-text-secondary">
+                    <strong>Dosage:</strong> {prescription.dosage}
+                  </p>
+                  <p className="text-sm text-medical-text-secondary">
+                    <strong>Frequency:</strong> {prescription.periodicity}
+                  </p>
                   <p className="text-xs text-medical-text-muted font-mono">
                     ID: {prescription.medicineId}
                   </p>
@@ -189,6 +202,47 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 </select>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    Dosage
+                  </label>
+                  <input
+                    type="text"
+                    value={dosage}
+                    onChange={(e) => setDosage(e.target.value)}
+                    placeholder="e.g., 10mg, 2 tablets"
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="input-dosage"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-medical-text-primary mb-2">
+                    Frequency
+                  </label>
+                  <select
+                    value={periodicity}
+                    onChange={(e) => setPeriodicity(e.target.value)}
+                    className="w-full p-3 border border-medical-border rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-primary"
+                    data-testid="select-periodicity"
+                  >
+                    <option value="">Select frequency...</option>
+                    <option value="Once daily">Once daily</option>
+                    <option value="Twice daily">Twice daily</option>
+                    <option value="Three times daily">Three times daily</option>
+                    <option value="Four times daily">Four times daily</option>
+                    <option value="Every 2 hours">Every 2 hours</option>
+                    <option value="Every 4 hours">Every 4 hours</option>
+                    <option value="Every 6 hours">Every 6 hours</option>
+                    <option value="Every 8 hours">Every 8 hours</option>
+                    <option value="Every 12 hours">Every 12 hours</option>
+                    <option value="As needed">As needed</option>
+                    <option value="Every 4 hours as needed">Every 4 hours as needed</option>
+                    <option value="Every 6 hours as needed">Every 6 hours as needed</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-medical-text-primary mb-2">
                   PIN Code
@@ -216,6 +270,8 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
                 onClick={() => {
                   setShowAddModal(false);
                   setSelectedMedicine(null);
+                  setDosage("");
+                  setPeriodicity("");
                   setPin("");
                   setError("");
                 }}
@@ -256,6 +312,10 @@ export function PrescriptionManager({ patient }: PrescriptionManagerProps) {
               <p className="text-sm text-gray-800 mb-2">
                 Are you sure you want to remove <strong>{selectedPrescription.medicine?.name}</strong> from this patient's prescriptions?
               </p>
+              <div className="text-xs text-gray-600 mb-2">
+                <p><strong>Dosage:</strong> {selectedPrescription.dosage}</p>
+                <p><strong>Frequency:</strong> {selectedPrescription.periodicity}</p>
+              </div>
               <p className="text-xs text-gray-600">
                 This action cannot be undone.
               </p>
